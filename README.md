@@ -2,7 +2,7 @@
 
 [![skills.sh](https://skills.sh/b/tonykzeph/zephior-agent-toolkit)](https://skills.sh/tonykzeph/zephior-agent-toolkit)
 
-Official, public agent resources for [Zephior](https://zephior.com): three Agent Skills, an Agent Plugins 1.0 manifest, two remote MCP server declarations, coding-agent rules, and a zero-dependency JavaScript client for the read-only Discovery API.
+Official, public agent resources for [Zephior](https://zephior.com): three Agent Skills, an Agent Plugins 1.0 manifest, two remote MCP server declarations, coding-agent rules, and zero-dependency JavaScript and Go clients for the read-only Discovery API.
 
 This repository contains no product source code, customer data, private knowledge, credentials, or write-capable integration.
 
@@ -40,6 +40,19 @@ const estimate = await createZivaPricingEstimate({
 
 The client uses the global Fetch API and has no runtime dependencies.
 
+## Use the Go SDK or CLI
+
+```bash
+go get github.com/tonykzeph/zephior-agent-toolkit@latest
+go install github.com/tonykzeph/zephior-agent-toolkit/cmd/zephior@latest
+
+zephior search "RFP automation" en 5
+zephior pricing CHF
+zephior estimate Business CHF monthly
+```
+
+The Go API exposes `GetSiteOverview`, `SearchResources`, `GetZivaPricingDocument`, `CreateZivaPricingEstimate`, and the generic `CallMCPTool` method.
+
 ## Connect the MCP servers
 
 `mcp.json` declares two public Streamable HTTP servers:
@@ -67,6 +80,7 @@ Never send customer documents, tender content, questionnaires, credentials, pers
 ```bash
 npm test
 npm pack --dry-run
+go test ./...
 ```
 
 Licensed under MIT. Public Zephior content remains subject to the terms linked from the canonical website.

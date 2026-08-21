@@ -16,4 +16,4 @@ This repository contains only public, read-only integration material for Zephior
 
 ## Verification
 
-Run `npm test` before changing the JavaScript client. Validate `plugin.json` and `mcp.json` against their declared Agent Plugins 1.0.0 schemas. Keep every skill self-contained and grounded in public Zephior sources.
+Run `npm test` and `go test ./...` before changing either client. Validate `plugin.json` and `mcp.json` against their declared Agent Plugins 1.0.0 schemas. Keep every skill self-contained and grounded in public Zephior sources.
