@@ -1,0 +1,51 @@
+{
+  "name": "zephior-agent-toolkit",
+  "version": "0.1.0",
+  "description": "Zero-dependency JavaScript client and portable agent resources for Zephior's public Discovery API and MCP servers.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "skills",
+    "AGENTS.md",
+    "plugin.json",
+    "mcp.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check src/index.js && npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tonykzeph/zephior-agent-toolkit.git"
+  },
+  "homepage": "https://zephior.com/developers",
+  "bugs": {
+    "url": "https://github.com/tonykzeph/zephior-agent-toolkit/issues"
+  },
+  "keywords": [
+    "zephior",
+    "ziva",
+    "rfp",
+    "tender",
+    "proposal",
+    "mcp",
+    "agent-skills"
+  ],
+  "author": "Zephior LLC <hello@zephior.com> (https://zephior.com)",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
