@@ -1,6 +1,18 @@
 export type ZephiorLocale = 'en' | 'de' | 'fr';
 export type ZephiorCurrency = 'CHF' | 'USD' | 'EUR';
-export type ZivaPlan = 'Starter' | 'Business' | 'Advanced' | 'Enterprise';
+export type ZivaCapacityCredits =
+  | 100
+  | 250
+  | 500
+  | 750
+  | 1000
+  | 1149
+  | 1500
+  | 2500
+  | 5000
+  | 10000
+  | 20000
+  | 40000;
 export type BillingPeriod = 'monthly' | 'annual';
 
 export interface ClientOptions {
@@ -46,6 +58,10 @@ export function recommendZephiorService(
 ): Promise<unknown>;
 
 export function createZivaPricingEstimate(
-  input: { plan: ZivaPlan; currency?: ZephiorCurrency; billingPeriod?: BillingPeriod },
+  input: {
+    credits: ZivaCapacityCredits;
+    currency?: ZephiorCurrency;
+    billingPeriod?: BillingPeriod;
+  },
   options?: McpClientOptions
 ): Promise<unknown>;

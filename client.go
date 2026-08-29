@@ -174,9 +174,10 @@ func (c *Client) GetZivaPricingDocument(
 
 func (c *Client) CreateZivaPricingEstimate(
 	ctx context.Context,
-	plan, currency, billingPeriod string,
+	credits int,
+	currency, billingPeriod string,
 ) (map[string]any, error) {
 	return c.CallMCPTool(ctx, "create_ziva_pricing_estimate", map[string]any{
-		"plan": plan, "currency": currency, "billingPeriod": billingPeriod,
+		"credits": credits, "currency": currency, "billingPeriod": billingPeriod,
 	})
 }

@@ -16,7 +16,7 @@ func usage() {
   zephior site [locale]
   zephior search <query> [locale] [limit]
   zephior pricing [CHF|USD|EUR]
-  zephior estimate <Starter|Business|Advanced|Enterprise> <CHF|USD|EUR> <monthly|annual>
+  zephior estimate <credits> <CHF|USD|EUR> <monthly|annual>
 
 The CLI calls Zephior's public, read-only interfaces. Never submit confidential material.`)
 }
@@ -67,7 +67,12 @@ func main() {
 			usage()
 			os.Exit(2)
 		}
-		result, err = client.CreateZivaPricingEstimate(ctx, os.Args[2], os.Args[3], os.Args[4])
+		credits, parseErr := strconv.Atoi(os.Args[2])
+		if parseErr != nil || credits <= 0 {
+			fmt.Fprintln(os.Stderr, "credits must be a positive integer capacity checkpoint")
+			os.Exit(2)
+		}
+		result, err = client.CreateZivaPricingEstimate(ctx, credits, os.Args[3], os.Args[4])
 	default:
 		usage()
 		os.Exit(2)

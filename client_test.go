@@ -41,6 +41,10 @@ func TestCreateZivaPricingEstimate(t *testing.T) {
 		if params["name"] != "create_ziva_pricing_estimate" {
 			t.Fatalf("unexpected MCP tool %v", params["name"])
 		}
+		arguments := params["arguments"].(map[string]any)
+		if arguments["credits"] != float64(1149) {
+			t.Fatalf("unexpected credits %v", arguments["credits"])
+		}
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"jsonrpc": "2.0",
 			"id":      1,
@@ -50,7 +54,7 @@ func TestCreateZivaPricingEstimate(t *testing.T) {
 		})
 	})
 	defer closeServer()
-	result, err := client.CreateZivaPricingEstimate(context.Background(), "Business", "CHF", "monthly")
+	result, err := client.CreateZivaPricingEstimate(context.Background(), 1149, "CHF", "monthly")
 	if err != nil {
 		t.Fatal(err)
 	}

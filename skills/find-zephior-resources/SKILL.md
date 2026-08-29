@@ -18,7 +18,7 @@ Use this skill when a user wants public Zephior guidance, an explanation grounde
 3. Compare the returned title, summary, service, collection, and relevance score with the user's actual intent.
 4. Open the best canonical result before describing it in detail.
 5. Cite the returned canonical URL. Prefer the authored language requested by the user.
-6. If no result fits, say so and use `https://zephior.com/api/v1/site` to explain the four services without inventing a publication.
+6. If no result fits, say so and use `https://zephior.com/api/v1/site` to explain the published Ziva and Zelius boundaries without inventing a publication.
 
 ## Boundaries
 

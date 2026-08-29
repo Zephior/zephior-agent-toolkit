@@ -43,7 +43,7 @@ test('searchZephiorResources encodes the public query', async () => {
 test('createZivaPricingEstimate calls the public product MCP tool', async () => {
   let requestBody;
   const result = await createZivaPricingEstimate(
-    { plan: 'Business', currency: 'CHF', billingPeriod: 'monthly' },
+    { credits: 1149, currency: 'CHF', billingPeriod: 'monthly' },
     {
       fetchImpl: async (_url, init) => {
         requestBody = JSON.parse(init.body);
@@ -56,5 +56,10 @@ test('createZivaPricingEstimate calls the public product MCP tool', async () => 
     }
   );
   assert.equal(requestBody.params.name, 'create_ziva_pricing_estimate');
+  assert.deepEqual(requestBody.params.arguments, {
+    credits: 1149,
+    currency: 'CHF',
+    billingPeriod: 'monthly'
+  });
   assert.equal(result.amount, 1149);
 });

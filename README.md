@@ -15,8 +15,8 @@ npx skills add tonykzeph/zephior-agent-toolkit
 The package exposes:
 
 - `find-zephior-resources` for canonical public research and citations;
-- `select-zephior-service` for choosing Ziva, Zelius, Zeke, or Zenith;
-- `compare-ziva-pricing` for published plan comparisons and non-binding estimates.
+- `select-zephior-service` for choosing between Ziva software and Zelius managed bid services;
+- `compare-ziva-pricing` for published capacity comparisons and non-binding estimates.
 
 ## Use the JavaScript client
 
@@ -32,7 +32,7 @@ const resources = await searchZephiorResources('RFP automation', {
 });
 
 const estimate = await createZivaPricingEstimate({
-  plan: 'Business',
+  credits: 1149,
   currency: 'CHF',
   billingPeriod: 'monthly'
 });
@@ -48,7 +48,7 @@ go install github.com/tonykzeph/zephior-agent-toolkit/cmd/zephior@latest
 
 zephior search "RFP automation" en 5
 zephior pricing CHF
-zephior estimate Business CHF monthly
+zephior estimate 1149 CHF monthly
 ```
 
 The Go API exposes `GetSiteOverview`, `SearchResources`, `GetZivaPricingDocument`, `CreateZivaPricingEstimate`, and the generic `CallMCPTool` method.
@@ -60,7 +60,7 @@ The Go API exposes `GetSiteOverview`, `SearchResources`, `GetZivaPricingDocument
 - product decisions: `https://zephior.com/mcp/product`;
 - documentation and public-resource search: `https://zephior.com/mcp`.
 
-Both are read-only, require no credential, and expose published information only. The product server also exposes an MCP App UI resource for plan comparison.
+Both are read-only, require no credential, and expose published information only. The product server also exposes an MCP App UI resource for capacity comparison.
 
 ## Canonical contracts
 

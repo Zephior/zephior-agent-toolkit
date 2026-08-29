@@ -107,12 +107,12 @@ export function recommendZephiorService(requirement, options = {}) {
 }
 
 export function createZivaPricingEstimate(
-  { plan, currency = 'CHF', billingPeriod = 'monthly' },
+  { credits, currency = 'CHF', billingPeriod = 'monthly' },
   options = {}
 ) {
   return callZephiorMcpTool(
     'create_ziva_pricing_estimate',
-    { plan, currency, billingPeriod },
+    { credits, currency, billingPeriod },
     options
   );
 }
