@@ -20,7 +20,8 @@ Tender Universe.
 2. Call `POST https://zephior.com/api/tenders/search` with a two-to-500-character
    query, an `open` status filter, and at most 20 results.
 3. Use `GET https://zephior.com/api/tenders/latest?limit=10` when the user asks
-   for recently published open opportunities without a semantic query.
+   for recently published open opportunities with a future submission deadline
+   and no semantic query.
 4. Treat `GET https://zephior.com/api/tenders/stats` as the exact current
    coverage snapshot. Do not substitute stale figures from prose pages.
 5. Cite each result's `canonical_url` and identify the issuing authority,
