@@ -1,6 +1,6 @@
 {
   "name": "zephior-agent-toolkit",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Zero-dependency clients and portable agent resources for Zephior's public Discovery, Tender Universe, and MCP interfaces.",
   "type": "module",
   "exports": {
