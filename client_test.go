@@ -95,3 +95,33 @@ func TestSearchLiveTenders(t *testing.T) {
 		t.Fatalf("missing items %v", result)
 	}
 }
+
+func TestRegionalLatestAndStreamURLs(t *testing.T) {
+	client, closeServer := testClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/tenders/latest" || r.URL.Query().Get("region") != "europe" || r.URL.Query().Get("limit") != "3" {
+			t.Fatalf("unexpected regional latest request %s", r.URL.String())
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"items": []any{},
+			"scope": map[string]any{"requested": "europe", "effective": "europe", "broadened": false},
+		})
+	})
+	defer closeServer()
+
+	if _, err := client.GetLatestLiveTendersByRegion(context.Background(), "europe", 3); err != nil {
+		t.Fatal(err)
+	}
+	streamURL, err := client.TenderUpdateStreamURLForRegion("CH")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if streamURL != client.BaseURL+"/api/tenders/stream?region=CH" {
+		t.Fatalf("unexpected stream URL %s", streamURL)
+	}
+	if _, err := client.TenderUpdateStreamURLForRegion("auto"); err == nil {
+		t.Fatal("auto stream region must fail")
+	}
+	if _, err := client.TenderUpdateStreamURLForRegion("not-a-region"); err == nil {
+		t.Fatal("unknown stream region must fail")
+	}
+}

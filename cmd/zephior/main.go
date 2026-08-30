@@ -16,7 +16,7 @@ func usage() {
   zephior site [locale]
   zephior search <query> [locale] [limit]
   zephior tenders <query> [limit]
-  zephior latest-tenders [limit]
+  zephior latest-tenders [limit] [region]
   zephior tender-stats
   zephior pricing [CHF|USD|EUR]
   zephior estimate <credits> <CHF|USD|EUR> <monthly|annual>
@@ -79,6 +79,7 @@ func main() {
 		)
 	case "latest-tenders":
 		limit := 10
+		region := "global"
 		if len(os.Args) > 2 {
 			limit, err = strconv.Atoi(os.Args[2])
 			if err != nil {
@@ -86,7 +87,10 @@ func main() {
 				os.Exit(2)
 			}
 		}
-		result, err = client.GetLatestLiveTenders(ctx, limit)
+		if len(os.Args) > 3 {
+			region = os.Args[3]
+		}
+		result, err = client.GetLatestLiveTendersByRegion(ctx, region, limit)
 	case "tender-stats":
 		result, err = client.GetTenderUniverseStats(ctx)
 	case "pricing":

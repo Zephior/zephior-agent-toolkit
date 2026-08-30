@@ -169,17 +169,55 @@ func (c *Client) SearchLiveTenders(
 }
 
 func (c *Client) GetLatestLiveTenders(ctx context.Context, limit int) (map[string]any, error) {
+	return c.GetLatestLiveTendersByRegion(ctx, "global", limit)
+}
+
+func normalizedTenderRegion(region string, allowAuto bool) (string, error) {
+	region = strings.ToLower(strings.TrimSpace(region))
+	if region == "" {
+		region = "global"
+	}
+	if region == "global" || (allowAuto && region == "auto") {
+		return region, nil
+	}
+	for _, candidate := range []string{
+		"europe", "mena", "africa", "north-america", "latin-america",
+		"central-asia", "south-asia", "east-asia", "southeast-asia", "oceania",
+	} {
+		if region == candidate {
+			return region, nil
+		}
+	}
+	if len(region) == 2 && region[0] >= 'a' && region[0] <= 'z' && region[1] >= 'a' && region[1] <= 'z' {
+		return strings.ToUpper(region), nil
+	}
+	return "", fmt.Errorf("zephior: invalid tender region")
+}
+
+func (c *Client) GetLatestLiveTendersByRegion(
+	ctx context.Context,
+	region string,
+	limit int,
+) (map[string]any, error) {
 	if limit == 0 {
 		limit = 10
 	}
 	if limit < 1 || limit > 20 {
 		return nil, fmt.Errorf("zephior: limit must be between 1 and 20")
 	}
+	region, err := normalizedTenderRegion(region, true)
+	if err != nil {
+		return nil, err
+	}
+	values := url.Values{
+		"limit":  {strconv.Itoa(limit)},
+		"region": {region},
+	}
 	result := map[string]any{}
-	err := c.doJSON(
+	err = c.doJSON(
 		ctx,
 		http.MethodGet,
-		c.endpoint("/api/tenders/latest")+"?limit="+url.QueryEscape(strconv.Itoa(limit)),
+		c.endpoint("/api/tenders/latest")+"?"+values.Encode(),
 		nil,
 		&result,
 	)
@@ -193,7 +231,16 @@ func (c *Client) GetTenderUniverseStats(ctx context.Context) (map[string]any, er
 }
 
 func (c *Client) TenderUpdateStreamURL() string {
-	return c.endpoint("/api/tenders/stream")
+	streamURL, _ := c.TenderUpdateStreamURLForRegion("global")
+	return streamURL
+}
+
+func (c *Client) TenderUpdateStreamURLForRegion(region string) (string, error) {
+	region, err := normalizedTenderRegion(region, false)
+	if err != nil {
+		return "", err
+	}
+	return c.endpoint("/api/tenders/stream") + "?region=" + url.QueryEscape(region), nil
 }
 
 func (c *Client) CallMCPTool(

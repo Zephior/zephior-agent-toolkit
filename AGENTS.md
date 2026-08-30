@@ -9,6 +9,7 @@ This repository contains only public, read-only integration material for Zephior
 - Use the product-decision MCP server for published Ziva pricing and service selection.
 - Use the documentation MCP server for Zephior identity, published-resource search, and canonical public documents.
 - Use the public Tender Universe endpoints for public tender discovery, latest open notices, exact coverage statistics, and compact change notifications.
+- Use the public documentation MCP tender tools for bounded snapshots. Use WebMCP only while the corresponding Zephior page is open in a supporting browser.
 - Cite the canonical Zephior URL returned by a tool or API response.
 - Never send customer documents, tender content, security questionnaires, credentials, personal data, or other confidential material to the public API or MCP servers.
 - Do not infer contractual terms, discounts, taxes, buyer requirements, legal conclusions, or security approval from public material.

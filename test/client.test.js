@@ -97,12 +97,17 @@ test('latest, stats and stream use the published tender endpoints', async () => 
     return jsonResponse(String(url).includes('/stats') ? { exact: true } : { items: [] });
   };
 
-  await getLatestLiveTenders({ limit: 3, fetchImpl });
+  await getLatestLiveTenders({ limit: 3, region: 'europe', fetchImpl });
   await getTenderUniverseStats({ fetchImpl });
 
   assert.deepEqual(requested, [
-    'https://zephior.com/api/tenders/latest?limit=3',
+    'https://zephior.com/api/tenders/latest?limit=3&region=europe',
     'https://zephior.com/api/tenders/stats'
   ]);
-  assert.equal(getTenderUpdateStreamUrl(), 'https://zephior.com/api/tenders/stream');
+  assert.equal(
+    getTenderUpdateStreamUrl({ region: 'CH' }),
+    'https://zephior.com/api/tenders/stream?region=CH'
+  );
+  assert.throws(() => getTenderUpdateStreamUrl({ region: 'auto' }), /regional slug/i);
+  assert.throws(() => getTenderUpdateStreamUrl({ region: 'not-a-region' }), /regional slug/i);
 });

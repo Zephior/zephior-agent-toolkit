@@ -55,6 +55,14 @@ export interface PublicTenderPage {
   items: PublicTender[];
 }
 
+export interface PublicTenderPreview extends PublicTenderPage {
+  scope: {
+    requested: string;
+    effective: string;
+    broadened: boolean;
+  };
+}
+
 export interface TenderUniverseStats {
   active_sources: number;
   canonical_portals: number;
@@ -97,12 +105,14 @@ export function searchLiveTenders(
 ): Promise<PublicTenderPage>;
 
 export function getLatestLiveTenders(
-  options?: ClientOptions & { limit?: number }
-): Promise<PublicTenderPage>;
+  options?: ClientOptions & { limit?: number; region?: string }
+): Promise<PublicTenderPreview>;
 
 export function getTenderUniverseStats(options?: ClientOptions): Promise<TenderUniverseStats>;
 
-export function getTenderUpdateStreamUrl(options?: Pick<ClientOptions, 'origin'>): string;
+export function getTenderUpdateStreamUrl(
+  options?: Pick<ClientOptions, 'origin'> & { region?: string }
+): string;
 
 export function callZephiorMcpTool(
   name: string,

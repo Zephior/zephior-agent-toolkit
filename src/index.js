@@ -74,6 +74,32 @@ function boundedTenderLimit(limit, fallback) {
   return value;
 }
 
+const TENDER_REGION_GROUPS = new Set([
+  'europe',
+  'mena',
+  'africa',
+  'north-america',
+  'latin-america',
+  'central-asia',
+  'south-asia',
+  'east-asia',
+  'southeast-asia',
+  'oceania'
+]);
+
+function boundedTenderRegion(region, { allowAuto = true } = {}) {
+  const value = String(region ?? 'global').trim().toLowerCase();
+  if (value === 'global' || (allowAuto && value === 'auto') || TENDER_REGION_GROUPS.has(value)) {
+    return value;
+  }
+  if (/^[a-z]{2}$/.test(value)) return value.toUpperCase();
+  throw new TypeError(
+    allowAuto
+      ? 'region must be global, auto, a regional slug, or an ISO alpha-2 country code'
+      : 'region must be global, a regional slug, or an ISO alpha-2 country code'
+  );
+}
+
 export async function searchLiveTenders(
   query,
   {
@@ -114,10 +140,11 @@ export async function searchLiveTenders(
 }
 
 export async function getLatestLiveTenders(
-  { limit = 10, origin = DEFAULT_ORIGIN, fetchImpl } = {}
+  { limit = 10, region = 'global', origin = DEFAULT_ORIGIN, fetchImpl } = {}
 ) {
   const url = new URL('/api/tenders/latest', normalizedOrigin(origin));
   url.searchParams.set('limit', String(boundedTenderLimit(limit, 10)));
+  url.searchParams.set('region', boundedTenderRegion(region));
   const response = await selectedFetch(fetchImpl)(url, {
     headers: { Accept: 'application/json' }
   });
@@ -132,8 +159,10 @@ export async function getTenderUniverseStats({ origin = DEFAULT_ORIGIN, fetchImp
   return readJson(response);
 }
 
-export function getTenderUpdateStreamUrl({ origin = DEFAULT_ORIGIN } = {}) {
-  return new URL('/api/tenders/stream', normalizedOrigin(origin)).toString();
+export function getTenderUpdateStreamUrl({ region = 'global', origin = DEFAULT_ORIGIN } = {}) {
+  const url = new URL('/api/tenders/stream', normalizedOrigin(origin));
+  url.searchParams.set('region', boundedTenderRegion(region, { allowAuto: false }));
+  return url.toString();
 }
 
 export async function callZephiorMcpTool(
