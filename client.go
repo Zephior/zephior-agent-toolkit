@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -16,6 +17,17 @@ const DefaultOrigin = "https://zephior.com"
 type Client struct {
 	BaseURL    string
 	HTTPClient *http.Client
+}
+
+type TenderSearchOptions struct {
+	Countries           []string `json:"countries,omitempty"`
+	Portals             []string `json:"portals,omitempty"`
+	Statuses            []string `json:"statuses,omitempty"`
+	ClassificationCodes []string `json:"classification_codes,omitempty"`
+	PublishedAfter      string   `json:"published_after,omitempty"`
+	DeadlineAfter       string   `json:"deadline_after,omitempty"`
+	DeadlineBefore      string   `json:"deadline_before,omitempty"`
+	Limit               int      `json:"limit,omitempty"`
 }
 
 type PublicAPIError struct {
@@ -127,6 +139,61 @@ func (c *Client) SearchResources(
 	result := map[string]any{}
 	err := c.doJSON(ctx, http.MethodGet, c.endpoint("/api/v1/search")+"?"+values.Encode(), nil, &result)
 	return result, err
+}
+
+func (c *Client) SearchLiveTenders(
+	ctx context.Context,
+	query string,
+	options TenderSearchOptions,
+) (map[string]any, error) {
+	query = strings.TrimSpace(query)
+	if len(query) < 2 || len(query) > 500 {
+		return nil, fmt.Errorf("zephior: query must contain between two and 500 characters")
+	}
+	if options.Limit == 0 {
+		options.Limit = 20
+	}
+	if options.Limit < 1 || options.Limit > 20 {
+		return nil, fmt.Errorf("zephior: limit must be between 1 and 20")
+	}
+	if options.Statuses == nil {
+		options.Statuses = []string{"open"}
+	}
+	payload := struct {
+		Query string `json:"query"`
+		TenderSearchOptions
+	}{Query: query, TenderSearchOptions: options}
+	result := map[string]any{}
+	err := c.doJSON(ctx, http.MethodPost, c.endpoint("/api/tenders/search"), payload, &result)
+	return result, err
+}
+
+func (c *Client) GetLatestLiveTenders(ctx context.Context, limit int) (map[string]any, error) {
+	if limit == 0 {
+		limit = 10
+	}
+	if limit < 1 || limit > 20 {
+		return nil, fmt.Errorf("zephior: limit must be between 1 and 20")
+	}
+	result := map[string]any{}
+	err := c.doJSON(
+		ctx,
+		http.MethodGet,
+		c.endpoint("/api/tenders/latest")+"?limit="+url.QueryEscape(strconv.Itoa(limit)),
+		nil,
+		&result,
+	)
+	return result, err
+}
+
+func (c *Client) GetTenderUniverseStats(ctx context.Context) (map[string]any, error) {
+	result := map[string]any{}
+	err := c.doJSON(ctx, http.MethodGet, c.endpoint("/api/tenders/stats"), nil, &result)
+	return result, err
+}
+
+func (c *Client) TenderUpdateStreamURL() string {
+	return c.endpoint("/api/tenders/stream")
 }
 
 func (c *Client) CallMCPTool(

@@ -1,20 +1,21 @@
 # Zephior Agent Toolkit
 
-[![skills.sh](https://skills.sh/b/tonykzeph/zephior-agent-toolkit)](https://skills.sh/tonykzeph/zephior-agent-toolkit)
+[![skills.sh](https://skills.sh/b/Zephior/zephior-agent-toolkit)](https://skills.sh/Zephior/zephior-agent-toolkit)
 
-Official, public agent resources for [Zephior](https://zephior.com): three Agent Skills, an Agent Plugins 1.0 manifest, two remote MCP server declarations, coding-agent rules, and zero-dependency JavaScript and Go clients for the read-only Discovery API.
+Official, public agent resources for [Zephior](https://zephior.com): four Agent Skills, an Agent Plugins 1.0 manifest, two remote MCP server declarations, coding-agent rules, and zero-dependency JavaScript and Go clients for the read-only Discovery and Tender Universe APIs.
 
 This repository contains no product source code, customer data, private knowledge, credentials, or write-capable integration.
 
 ## Install the skills
 
 ```bash
-npx skills add tonykzeph/zephior-agent-toolkit
+npx skills add Zephior/zephior-agent-toolkit
 ```
 
 The package exposes:
 
 - `find-zephior-resources` for canonical public research and citations;
+- `search-live-tenders` for current public procurement discovery and authoritative-source verification;
 - `select-zephior-service` for choosing between Ziva software and Zelius managed bid services;
 - `compare-ziva-pricing` for published capacity comparisons and non-binding estimates.
 
@@ -23,12 +24,19 @@ The package exposes:
 ```js
 import {
   createZivaPricingEstimate,
+  searchLiveTenders,
   searchZephiorResources
 } from 'zephior-agent-toolkit';
 
 const resources = await searchZephiorResources('RFP automation', {
   locale: 'en',
   limit: 5
+});
+
+const tenders = await searchLiveTenders('cybersecurity services', {
+  countries: ['CH'],
+  statuses: ['open'],
+  limit: 10
 });
 
 const estimate = await createZivaPricingEstimate({
@@ -43,15 +51,18 @@ The client uses the global Fetch API and has no runtime dependencies.
 ## Use the Go SDK or CLI
 
 ```bash
-go get github.com/tonykzeph/zephior-agent-toolkit@latest
-go install github.com/tonykzeph/zephior-agent-toolkit/cmd/zephior@latest
+go get github.com/Zephior/zephior-agent-toolkit@latest
+go install github.com/Zephior/zephior-agent-toolkit/cmd/zephior@latest
 
 zephior search "RFP automation" en 5
+zephior tenders "cybersecurity services" 10
+zephior latest-tenders 10
+zephior tender-stats
 zephior pricing CHF
 zephior estimate 1149 CHF monthly
 ```
 
-The Go API exposes `GetSiteOverview`, `SearchResources`, `GetZivaPricingDocument`, `CreateZivaPricingEstimate`, and the generic `CallMCPTool` method.
+The Go API exposes `GetSiteOverview`, `SearchResources`, `SearchLiveTenders`, `GetLatestLiveTenders`, `GetTenderUniverseStats`, `GetZivaPricingDocument`, `CreateZivaPricingEstimate`, and the generic `CallMCPTool` method.
 
 ## Connect the MCP servers
 
@@ -70,6 +81,10 @@ Both are read-only, require no credential, and expose published information only
 - [MCP discovery](https://zephior.com/.well-known/mcp)
 - [Agent Skills discovery](https://zephior.com/.well-known/agent-skills/index.json)
 - [Machine-readable pricing](https://zephior.com/pricing.md)
+- [Public Tender Universe](https://zephior.com/tenders)
+- [Tender search API](https://zephior.com/api/tenders/search)
+- [Latest open tenders](https://zephior.com/api/tenders/latest)
+- [Exact Tender Universe statistics](https://zephior.com/api/tenders/stats)
 
 ## Safety boundary
 

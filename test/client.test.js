@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   createZivaPricingEstimate,
+  getLatestLiveTenders,
   getSiteOverview,
+  getTenderUniverseStats,
+  getTenderUpdateStreamUrl,
+  searchLiveTenders,
   searchZephiorResources
 } from '../src/index.js';
 
@@ -62,4 +66,43 @@ test('createZivaPricingEstimate calls the public product MCP tool', async () => 
     billingPeriod: 'monthly'
   });
   assert.equal(result.amount, 1149);
+});
+
+test('searchLiveTenders sends bounded public filters', async () => {
+  let requestBody;
+  const result = await searchLiveTenders('cybersecurity services', {
+    countries: ['CH'],
+    limit: 5,
+    fetchImpl: async (_url, init) => {
+      requestBody = JSON.parse(init.body);
+      return jsonResponse({ items: [] });
+    }
+  });
+
+  assert.deepEqual(requestBody, {
+    query: 'cybersecurity services',
+    countries: ['CH'],
+    portals: [],
+    statuses: ['open'],
+    classification_codes: [],
+    limit: 5
+  });
+  assert.deepEqual(result, { items: [] });
+});
+
+test('latest, stats and stream use the published tender endpoints', async () => {
+  const requested = [];
+  const fetchImpl = async (url) => {
+    requested.push(String(url));
+    return jsonResponse(String(url).includes('/stats') ? { exact: true } : { items: [] });
+  };
+
+  await getLatestLiveTenders({ limit: 3, fetchImpl });
+  await getTenderUniverseStats({ fetchImpl });
+
+  assert.deepEqual(requested, [
+    'https://zephior.com/api/tenders/latest?limit=3',
+    'https://zephior.com/api/tenders/stats'
+  ]);
+  assert.equal(getTenderUpdateStreamUrl(), 'https://zephior.com/api/tenders/stream');
 });

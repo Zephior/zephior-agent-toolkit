@@ -1,3 +1,3 @@
-module github.com/tonykzeph/zephior-agent-toolkit
+module github.com/Zephior/zephior-agent-toolkit
 
 go 1.23
