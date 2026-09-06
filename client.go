@@ -243,11 +243,33 @@ func (c *Client) TenderUpdateStreamURLForRegion(region string) (string, error) {
 	return c.endpoint("/api/tenders/stream") + "?region=" + url.QueryEscape(region), nil
 }
 
+// CallMCPTool calls the product-decision server for backward compatibility.
+// Deprecated: use CallMCPToolAt with an explicit /mcp or /mcp/product path.
 func (c *Client) CallMCPTool(
 	ctx context.Context,
 	name string,
 	arguments map[string]any,
 ) (map[string]any, error) {
+	return c.CallMCPToolAt(ctx, "/mcp/product", name, arguments)
+}
+
+// CallMCPToolAt calls one of the two public MCP servers on the client's BaseURL.
+// Use /mcp for public-resource research and tender discovery, or /mcp/product
+// for published pricing and service selection. Other paths and URLs are rejected.
+func (c *Client) CallMCPToolAt(
+	ctx context.Context,
+	path, name string,
+	arguments map[string]any,
+) (map[string]any, error) {
+	if path != "/mcp" && path != "/mcp/product" {
+		return nil, fmt.Errorf("zephior: MCP path must be /mcp or /mcp/product")
+	}
+	if strings.TrimSpace(name) == "" {
+		return nil, fmt.Errorf("zephior: MCP tool name is required")
+	}
+	if arguments == nil {
+		arguments = map[string]any{}
+	}
 	request := map[string]any{
 		"jsonrpc": "2.0",
 		"id":      1,
@@ -267,7 +289,7 @@ func (c *Client) CallMCPTool(
 			Data    any    `json:"data"`
 		} `json:"error"`
 	}{}
-	if err := c.doJSON(ctx, http.MethodPost, c.endpoint("/mcp/product"), request, &response); err != nil {
+	if err := c.doJSON(ctx, http.MethodPost, c.endpoint(path), request, &response); err != nil {
 		return nil, err
 	}
 	if response.Error != nil {
@@ -283,7 +305,7 @@ func (c *Client) GetZivaPricingDocument(
 	if currency == "" {
 		currency = "CHF"
 	}
-	return c.CallMCPTool(ctx, "get_ziva_pricing_document", map[string]any{"currency": currency})
+	return c.CallMCPToolAt(ctx, "/mcp/product", "get_ziva_pricing_document", map[string]any{"currency": currency})
 }
 
 func (c *Client) CreateZivaPricingEstimate(
@@ -291,7 +313,7 @@ func (c *Client) CreateZivaPricingEstimate(
 	credits int,
 	currency, billingPeriod string,
 ) (map[string]any, error) {
-	return c.CallMCPTool(ctx, "create_ziva_pricing_estimate", map[string]any{
+	return c.CallMCPToolAt(ctx, "/mcp/product", "create_ziva_pricing_estimate", map[string]any{
 		"credits": credits, "currency": currency, "billingPeriod": billingPeriod,
 	})
 }
