@@ -1,7 +1,7 @@
 {
   "name": "zephior-agent-toolkit",
-  "version": "0.2.3",
-  "description": "Zero-dependency clients and portable agent resources for Zephior's public Discovery, Tender Universe, and MCP interfaces.",
+  "version": "0.3.0",
+  "description": "Zero-dependency clients and portable agent resources for Zephior's public Discovery and MCP interfaces.",
   "type": "module",
   "exports": {
     ".": {
@@ -34,10 +34,8 @@
     "zephior",
     "ziva",
     "rfp",
-    "tender",
     "proposal",
     "mcp",
-    "webmcp",
     "agent-skills"
   ],
   "author": "Zephior LLC <hello@zephior.com> (https://zephior.com)",

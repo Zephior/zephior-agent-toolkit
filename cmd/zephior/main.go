@@ -15,9 +15,6 @@ func usage() {
 	fmt.Fprintln(os.Stderr, `Usage:
   zephior site [locale]
   zephior search <query> [locale] [limit]
-  zephior tenders <query> [limit]
-  zephior latest-tenders [limit] [region]
-  zephior tender-stats
   zephior pricing [CHF|USD|EUR]
   zephior estimate <credits> <CHF|USD|EUR> <monthly|annual>
 
@@ -59,40 +56,6 @@ func main() {
 			}
 		}
 		result, err = client.SearchResources(ctx, strings.TrimSpace(os.Args[2]), locale, limit)
-	case "tenders":
-		if len(os.Args) < 3 {
-			usage()
-			os.Exit(2)
-		}
-		limit := 20
-		if len(os.Args) > 3 {
-			limit, err = strconv.Atoi(os.Args[3])
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "limit must be an integer")
-				os.Exit(2)
-			}
-		}
-		result, err = client.SearchLiveTenders(
-			ctx,
-			strings.TrimSpace(os.Args[2]),
-			zephior.TenderSearchOptions{Limit: limit},
-		)
-	case "latest-tenders":
-		limit := 10
-		region := "global"
-		if len(os.Args) > 2 {
-			limit, err = strconv.Atoi(os.Args[2])
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "limit must be an integer")
-				os.Exit(2)
-			}
-		}
-		if len(os.Args) > 3 {
-			region = os.Args[3]
-		}
-		result, err = client.GetLatestLiveTendersByRegion(ctx, region, limit)
-	case "tender-stats":
-		result, err = client.GetTenderUniverseStats(ctx)
 	case "pricing":
 		currency := "CHF"
 		if len(os.Args) > 2 {

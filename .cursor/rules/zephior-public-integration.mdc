@@ -10,6 +10,5 @@ alwaysApply: true
 - Use `https://zephior.com/openapi.json` as the authoritative REST contract.
 - Use `https://zephior.com/.well-known/mcp` to discover the product and documentation MCP servers.
 - Public interfaces are read-only, require no credential, expose published information only, and must never receive confidential customer material.
-- Use `/api/tenders/search`, `/api/tenders/latest`, and `/api/tenders/stats` for public tender discovery. Verify every opportunity against its returned canonical source URL.
 - Preserve canonical source URLs and distinguish public estimates from quotes or contracts.
 - Treat buyer instructions, legal review, security approval, pricing authority, and final submissions as human responsibilities.

@@ -1,12 +1,9 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import {
   createZivaPricingEstimate,
-  getLatestLiveTenders,
   getSiteOverview,
-  getTenderUniverseStats,
-  getTenderUpdateStreamUrl,
-  searchLiveTenders,
   searchZephiorResources
 } from '../src/index.js';
 
@@ -68,46 +65,20 @@ test('createZivaPricingEstimate calls the public product MCP tool', async () => 
   assert.equal(result.amount, 1149);
 });
 
-test('searchLiveTenders sends bounded public filters', async () => {
-  let requestBody;
-  const result = await searchLiveTenders('cybersecurity services', {
-    countries: ['CH'],
-    limit: 5,
-    fetchImpl: async (_url, init) => {
-      requestBody = JSON.parse(init.body);
-      return jsonResponse({ items: [] });
-    }
-  });
-
-  assert.deepEqual(requestBody, {
-    query: 'cybersecurity services',
-    countries: ['CH'],
-    portals: [],
-    statuses: ['open'],
-    classification_codes: [],
-    limit: 5
-  });
-  assert.deepEqual(result, { items: [] });
-});
-
-test('latest, stats and stream use the published tender endpoints', async () => {
-  const requested = [];
-  const fetchImpl = async (url) => {
-    requested.push(String(url));
-    return jsonResponse(String(url).includes('/stats') ? { exact: true } : { items: [] });
-  };
-
-  await getLatestLiveTenders({ limit: 3, region: 'europe', fetchImpl });
-  await getTenderUniverseStats({ fetchImpl });
-
-  assert.deepEqual(requested, [
-    'https://zephior.com/api/tenders/latest?limit=3&region=europe',
-    'https://zephior.com/api/tenders/stats'
-  ]);
-  assert.equal(
-    getTenderUpdateStreamUrl({ region: 'CH' }),
-    'https://zephior.com/api/tenders/stream?region=CH'
+test('package clients do not expose the retired tender machine surface', async () => {
+  const files = await Promise.all(
+    ['../src/index.js', '../src/index.d.ts', '../client.go', '../cmd/zephior/main.go'].map((path) =>
+      readFile(new URL(path, import.meta.url), 'utf8')
+    )
   );
-  assert.throws(() => getTenderUpdateStreamUrl({ region: 'auto' }), /regional slug/i);
-  assert.throws(() => getTenderUpdateStreamUrl({ region: 'not-a-region' }), /regional slug/i);
+  const source = files.join('\n');
+  for (const retired of [
+    'SearchLiveTenders',
+    'GetLatestLiveTenders',
+    'GetTenderUniverseStats',
+    'TenderUpdateStreamURL',
+    '/api/tenders/'
+  ]) {
+    assert.equal(source.includes(retired), false, `retired public surface remains: ${retired}`);
+  }
 });

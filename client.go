@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 )
 
@@ -17,17 +16,6 @@ const DefaultOrigin = "https://zephior.com"
 type Client struct {
 	BaseURL    string
 	HTTPClient *http.Client
-}
-
-type TenderSearchOptions struct {
-	Countries           []string `json:"countries,omitempty"`
-	Portals             []string `json:"portals,omitempty"`
-	Statuses            []string `json:"statuses,omitempty"`
-	ClassificationCodes []string `json:"classification_codes,omitempty"`
-	PublishedAfter      string   `json:"published_after,omitempty"`
-	DeadlineAfter       string   `json:"deadline_after,omitempty"`
-	DeadlineBefore      string   `json:"deadline_before,omitempty"`
-	Limit               int      `json:"limit,omitempty"`
 }
 
 type PublicAPIError struct {
@@ -141,108 +129,6 @@ func (c *Client) SearchResources(
 	return result, err
 }
 
-func (c *Client) SearchLiveTenders(
-	ctx context.Context,
-	query string,
-	options TenderSearchOptions,
-) (map[string]any, error) {
-	query = strings.TrimSpace(query)
-	if len(query) < 2 || len(query) > 500 {
-		return nil, fmt.Errorf("zephior: query must contain between two and 500 characters")
-	}
-	if options.Limit == 0 {
-		options.Limit = 20
-	}
-	if options.Limit < 1 || options.Limit > 20 {
-		return nil, fmt.Errorf("zephior: limit must be between 1 and 20")
-	}
-	if options.Statuses == nil {
-		options.Statuses = []string{"open"}
-	}
-	payload := struct {
-		Query string `json:"query"`
-		TenderSearchOptions
-	}{Query: query, TenderSearchOptions: options}
-	result := map[string]any{}
-	err := c.doJSON(ctx, http.MethodPost, c.endpoint("/api/tenders/search"), payload, &result)
-	return result, err
-}
-
-func (c *Client) GetLatestLiveTenders(ctx context.Context, limit int) (map[string]any, error) {
-	return c.GetLatestLiveTendersByRegion(ctx, "global", limit)
-}
-
-func normalizedTenderRegion(region string, allowAuto bool) (string, error) {
-	region = strings.ToLower(strings.TrimSpace(region))
-	if region == "" {
-		region = "global"
-	}
-	if region == "global" || (allowAuto && region == "auto") {
-		return region, nil
-	}
-	for _, candidate := range []string{
-		"europe", "mena", "africa", "north-america", "latin-america",
-		"central-asia", "south-asia", "east-asia", "southeast-asia", "oceania",
-	} {
-		if region == candidate {
-			return region, nil
-		}
-	}
-	if len(region) == 2 && region[0] >= 'a' && region[0] <= 'z' && region[1] >= 'a' && region[1] <= 'z' {
-		return strings.ToUpper(region), nil
-	}
-	return "", fmt.Errorf("zephior: invalid tender region")
-}
-
-func (c *Client) GetLatestLiveTendersByRegion(
-	ctx context.Context,
-	region string,
-	limit int,
-) (map[string]any, error) {
-	if limit == 0 {
-		limit = 10
-	}
-	if limit < 1 || limit > 20 {
-		return nil, fmt.Errorf("zephior: limit must be between 1 and 20")
-	}
-	region, err := normalizedTenderRegion(region, true)
-	if err != nil {
-		return nil, err
-	}
-	values := url.Values{
-		"limit":  {strconv.Itoa(limit)},
-		"region": {region},
-	}
-	result := map[string]any{}
-	err = c.doJSON(
-		ctx,
-		http.MethodGet,
-		c.endpoint("/api/tenders/latest")+"?"+values.Encode(),
-		nil,
-		&result,
-	)
-	return result, err
-}
-
-func (c *Client) GetTenderUniverseStats(ctx context.Context) (map[string]any, error) {
-	result := map[string]any{}
-	err := c.doJSON(ctx, http.MethodGet, c.endpoint("/api/tenders/stats"), nil, &result)
-	return result, err
-}
-
-func (c *Client) TenderUpdateStreamURL() string {
-	streamURL, _ := c.TenderUpdateStreamURLForRegion("global")
-	return streamURL
-}
-
-func (c *Client) TenderUpdateStreamURLForRegion(region string) (string, error) {
-	region, err := normalizedTenderRegion(region, false)
-	if err != nil {
-		return "", err
-	}
-	return c.endpoint("/api/tenders/stream") + "?region=" + url.QueryEscape(region), nil
-}
-
 // CallMCPTool calls the product-decision server for backward compatibility.
 // Deprecated: use CallMCPToolAt with an explicit /mcp or /mcp/product path.
 func (c *Client) CallMCPTool(
@@ -254,7 +140,7 @@ func (c *Client) CallMCPTool(
 }
 
 // CallMCPToolAt calls one of the two public MCP servers on the client's BaseURL.
-// Use /mcp for public-resource research and tender discovery, or /mcp/product
+// Use /mcp for public-resource research, or /mcp/product
 // for published pricing and service selection. Other paths and URLs are rejected.
 func (c *Client) CallMCPToolAt(
 	ctx context.Context,
