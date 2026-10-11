@@ -45,7 +45,7 @@
   "author": "Zephior LLC <hello@zephior.com> (https://zephior.com)",
   "license": "MIT",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.3.0"
   },
   "devDependencies": {
     "ajv": "8.20.0",
