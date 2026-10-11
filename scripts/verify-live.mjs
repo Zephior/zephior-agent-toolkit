@@ -9,6 +9,7 @@ const contracts = JSON.parse(
 );
 const ajv = new Ajv({ strict: false, validateFormats: false });
 import {
+  callZephiorMcpTool,
   searchPublicTenders,
   getPublicTender,
   getPublicTenderFacets,
@@ -92,7 +93,21 @@ if (results.items.length)
     (await getPublicTender(results.items[0].id, options)).id,
     results.items[0].id,
   );
-assert.equal((await getPublicTenderFacets(options)).statuses.length, 8);
+const facets = await getPublicTenderFacets(options);
+assert.equal(facets.statuses.length, 8);
+const mcpFacets = await callZephiorMcpTool(
+  "get_public_tender_facets",
+  {},
+  { endpoint: `${origin}/mcp` },
+);
+validateOutput("/mcp", "get_public_tender_facets", mcpFacets);
+// Publication continues between these reads, so catalog counts may legitimately change.
+validateOutput("/mcp", "get_public_tender_facets", facets);
+if (results.items.length) {
+  assert.ok(facets.categories.length && mcpFacets.categories.length);
+  assert.ok(facets.countries.length && mcpFacets.countries.length);
+}
+assert.deepEqual(mcpFacets.statuses, facets.statuses);
 const estimate = await createZivaPricingEstimate(
   { projectKeys: 1, currency: "CHF", projectsBillingPeriod: "monthly" },
   { endpoint },
