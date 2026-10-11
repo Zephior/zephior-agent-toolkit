@@ -1,0 +1,888 @@
+{
+  "/mcp": {
+    "search_public_tenders": {
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "q": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "countries": {
+            "type": "array",
+            "maxItems": 250,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            }
+          },
+          "categories": {
+            "type": "array",
+            "maxItems": 500,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]{1,100}$"
+            }
+          },
+          "statuses": {
+            "type": "array",
+            "maxItems": 8,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "open",
+                "closing-soon",
+                "closed",
+                "awarded",
+                "cancelled",
+                "suspended",
+                "upcoming",
+                "unconfirmed"
+              ]
+            },
+            "default": [
+              "closing-soon",
+              "open",
+              "unconfirmed",
+              "upcoming"
+            ],
+            "description": "Omit for active statuses. An explicit empty array includes all statuses. OR within each filter, AND between filters and text search."
+          },
+          "buyer": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "sort": {
+            "type": "string",
+            "enum": [
+              "relevance",
+              "deadline",
+              "newest"
+            ],
+            "default": "relevance"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000,
+            "default": 1
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "de",
+              "fr"
+            ],
+            "default": "en"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "limit",
+          "filters",
+          "locale",
+          "url",
+          "nextPage"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "url",
+                "title",
+                "summary",
+                "status",
+                "recordedStatus",
+                "locale",
+                "deadline",
+                "originalSource",
+                "sources",
+                "modifiedAt"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "summary": {
+                  "type": "string"
+                },
+                "locale": {
+                  "type": "string",
+                  "enum": [
+                    "en",
+                    "de",
+                    "fr"
+                  ],
+                  "default": "en"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "open",
+                    "closing-soon",
+                    "closed",
+                    "awarded",
+                    "cancelled",
+                    "suspended",
+                    "upcoming",
+                    "unconfirmed"
+                  ]
+                },
+                "recordedStatus": {
+                  "type": "string",
+                  "enum": [
+                    "open",
+                    "closing-soon",
+                    "closed",
+                    "awarded",
+                    "cancelled",
+                    "suspended",
+                    "upcoming",
+                    "unconfirmed"
+                  ]
+                },
+                "sourceStatus": {
+                  "type": "string"
+                },
+                "country": {
+                  "type": "string"
+                },
+                "revision": {
+                  "type": "integer"
+                },
+                "stale": {
+                  "type": "boolean"
+                },
+                "modifiedAt": {
+                  "type": "string"
+                },
+                "sourceCheckedAt": {
+                  "type": "string"
+                },
+                "deadline": {
+                  "type": "object",
+                  "required": [
+                    "at",
+                    "date",
+                    "precision"
+                  ],
+                  "properties": {
+                    "at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "date": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "precision": {
+                      "type": "string",
+                      "enum": [
+                        "instant",
+                        "date",
+                        "unavailable"
+                      ]
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "originalSource": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "sources": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "limit": {
+            "type": "integer",
+            "enum": [
+              20
+            ]
+          },
+          "filters": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "de",
+              "fr"
+            ],
+            "default": "en"
+          },
+          "url": {
+            "type": "string"
+          },
+          "nextPage": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "get_public_tender": {
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "de",
+              "fr"
+            ],
+            "default": "en"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "id",
+          "url",
+          "title",
+          "summary",
+          "status",
+          "recordedStatus",
+          "locale",
+          "deadline",
+          "originalSource",
+          "sources",
+          "modifiedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "de",
+              "fr"
+            ],
+            "default": "en"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "closing-soon",
+              "closed",
+              "awarded",
+              "cancelled",
+              "suspended",
+              "upcoming",
+              "unconfirmed"
+            ]
+          },
+          "recordedStatus": {
+            "type": "string",
+            "enum": [
+              "open",
+              "closing-soon",
+              "closed",
+              "awarded",
+              "cancelled",
+              "suspended",
+              "upcoming",
+              "unconfirmed"
+            ]
+          },
+          "sourceStatus": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "modifiedAt": {
+            "type": "string"
+          },
+          "sourceCheckedAt": {
+            "type": "string"
+          },
+          "deadline": {
+            "type": "object",
+            "required": [
+              "at",
+              "date",
+              "precision"
+            ],
+            "properties": {
+              "at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "date": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "precision": {
+                "type": "string",
+                "enum": [
+                  "instant",
+                  "date",
+                  "unavailable"
+                ]
+              }
+            },
+            "additionalProperties": true
+          },
+          "originalSource": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "get_public_tender_facets": {
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "de",
+              "fr"
+            ],
+            "default": "en"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "countries",
+          "categories",
+          "statuses",
+          "locale"
+        ],
+        "properties": {
+          "countries": {
+            "type": "array",
+            "maxItems": 250,
+            "items": {
+              "type": "object",
+              "required": [
+                "id"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{2}$"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "categories": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "en",
+                "de",
+                "fr"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "en": {
+                  "type": "string"
+                },
+                "de": {
+                  "type": "string"
+                },
+                "fr": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "statuses": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "label"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "enum": [
+                    "open",
+                    "closing-soon",
+                    "closed",
+                    "awarded",
+                    "cancelled",
+                    "suspended",
+                    "upcoming",
+                    "unconfirmed"
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "de",
+              "fr"
+            ],
+            "default": "en"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "get_zephior_overview": {
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "de",
+              "fr"
+            ],
+            "description": "Authored response language. Defaults to English."
+          }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "url",
+          "locale",
+          "services",
+          "contact"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "de",
+              "fr"
+            ]
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "contact": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "search_zephior_resources": {
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 200
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "de",
+              "fr"
+            ],
+            "default": "en"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 5
+          }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "query",
+          "locale",
+          "count",
+          "results"
+        ],
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "de",
+              "fr"
+            ]
+          },
+          "count": {
+            "type": "integer"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "get_zephior_document": {
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "document"
+        ],
+        "properties": {
+          "document": {
+            "type": "string",
+            "enum": [
+              "services",
+              "developer-guide",
+              "pricing"
+            ],
+            "description": "The canonical public document to retrieve."
+          }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "document",
+          "title",
+          "url",
+          "content"
+        ],
+        "properties": {
+          "document": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "content": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "/mcp/product": {
+    "get_ziva_pricing_document": {
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CHF",
+              "USD",
+              "EUR"
+            ],
+            "default": "CHF"
+          }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "model",
+          "currency",
+          "canonicalPricing",
+          "intelligence",
+          "projects"
+        ],
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CHF",
+              "USD",
+              "EUR"
+            ]
+          },
+          "canonicalPricing": {
+            "type": "string"
+          },
+          "intelligence": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "projects": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "recommend_zephior_service": {
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "requirement"
+        ],
+        "properties": {
+          "requirement": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "requirement",
+          "recommendation",
+          "resolution",
+          "safety"
+        ],
+        "properties": {
+          "requirement": {
+            "type": "string"
+          },
+          "recommendation": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "resolution": {
+            "type": "string"
+          },
+          "safety": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "create_ziva_pricing_estimate": {
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "currency"
+        ],
+        "properties": {
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CHF",
+              "USD",
+              "EUR"
+            ]
+          },
+          "intelligenceCoverage": {
+            "type": "string",
+            "enum": [
+              "national",
+              "regional",
+              "continental",
+              "global"
+            ]
+          },
+          "projectKeys": {
+            "type": "number",
+            "enum": [
+              1,
+              2,
+              5,
+              10,
+              20
+            ]
+          },
+          "projectsBillingPeriod": {
+            "type": "string",
+            "enum": [
+              "monthly",
+              "annual"
+            ],
+            "default": "monthly"
+          }
+        },
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "type",
+          "currency",
+          "intelligence",
+          "projects",
+          "canonicalPricing"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "non-binding-public-estimate"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "CHF",
+              "USD",
+              "EUR"
+            ]
+          },
+          "intelligence": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "projects": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "canonicalPricing": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

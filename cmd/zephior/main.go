@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	zephior "github.com/Zephior/zephior-agent-toolkit"
 )
@@ -16,7 +18,10 @@ func usage() {
   zephior site [locale]
   zephior search <query> [locale] [limit]
   zephior pricing [CHF|USD|EUR]
-  zephior estimate <credits> <CHF|USD|EUR> <monthly|annual>
+  zephior estimate <project-keys> <CHF|USD|EUR> <monthly|annual> [coverage]
+  zephior tenders --countries CH,DE --statuses open,closed --q bridge
+  zephior tender <notice-id> [locale]
+  zephior facets [locale]
 
 The CLI calls Zephior's public, read-only interfaces. Never submit confidential material.`)
 }
@@ -26,7 +31,8 @@ func main() {
 		usage()
 		os.Exit(2)
 	}
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	client := zephior.NewClient()
 	var (
 		result map[string]any
@@ -63,16 +69,66 @@ func main() {
 		}
 		result, err = client.GetZivaPricingDocument(ctx, currency)
 	case "estimate":
-		if len(os.Args) != 5 {
+		if len(os.Args) < 5 || len(os.Args) > 6 {
 			usage()
 			os.Exit(2)
 		}
-		credits, parseErr := strconv.Atoi(os.Args[2])
-		if parseErr != nil || credits <= 0 {
-			fmt.Fprintln(os.Stderr, "credits must be a positive integer capacity checkpoint")
+		keys, parseErr := strconv.Atoi(os.Args[2])
+		if parseErr != nil || keys < 0 {
+			fmt.Fprintln(os.Stderr, "project keys must be 0, 1, 2, 5, 10 or 20; 0 selects Intelligence only")
 			os.Exit(2)
 		}
-		result, err = client.CreateZivaPricingEstimate(ctx, credits, os.Args[3], os.Args[4])
+		input := zephior.PricingEstimateInput{ProjectKeys: keys, Currency: os.Args[3], ProjectsBillingPeriod: os.Args[4]}
+		if len(os.Args) == 6 {
+			input.IntelligenceCoverage = os.Args[5]
+		}
+		result, err = client.CreateZivaPricingEstimate(ctx, input)
+	case "tenders":
+		flags := flag.NewFlagSet("tenders", flag.ExitOnError)
+		countries := flags.String("countries", "", "Comma-separated country codes")
+		categories := flags.String("categories", "", "Comma-separated category IDs")
+		statuses := flags.String("statuses", "default", "Comma-separated statuses; all includes every status")
+		query := flags.String("q", "", "Title, buyer, keyword or reference")
+		buyer := flags.String("buyer", "", "Buyer ID")
+		sort := flags.String("sort", "relevance", "relevance, deadline or newest")
+		page := flags.Int("page", 1, "Result page")
+		locale := flags.String("locale", "en", "en, de or fr")
+		_ = flags.Parse(os.Args[2:])
+		input := zephior.TenderSearch{Query: *query, Buyer: *buyer, Sort: *sort, Page: *page, Locale: *locale}
+		if *countries != "" {
+			input.Countries = strings.Split(*countries, ",")
+		}
+		if *categories != "" {
+			input.Categories = strings.Split(*categories, ",")
+		}
+		if *statuses == "all" {
+			input.Statuses = []string{}
+		} else if *statuses != "default" {
+			input.Statuses = strings.Split(*statuses, ",")
+		}
+		var output zephior.TenderResults
+		output, err = client.SearchPublicTenders(ctx, input)
+		encoded, _ := json.Marshal(output)
+		_ = json.Unmarshal(encoded, &result)
+	case "tender":
+		if len(os.Args) < 3 {
+			usage()
+			os.Exit(2)
+		}
+		locale := "en"
+		if len(os.Args) > 3 {
+			locale = os.Args[3]
+		}
+		var output zephior.PublicTender
+		output, err = client.GetPublicTender(ctx, os.Args[2], locale)
+		encoded, _ := json.Marshal(output)
+		_ = json.Unmarshal(encoded, &result)
+	case "facets":
+		locale := "en"
+		if len(os.Args) > 2 {
+			locale = os.Args[2]
+		}
+		result, err = client.GetPublicTenderFacets(ctx, locale)
 	default:
 		usage()
 		os.Exit(2)
