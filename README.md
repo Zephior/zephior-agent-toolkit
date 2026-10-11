@@ -160,4 +160,10 @@ go vet ./...
 node scripts/verify-live.mjs
 ```
 
+The daily workflow verifies direct Markdown instructions, HTTP and server-rendered
+HTML discovery on public and localized pages, live MCP contracts, public tender
+queries, pricing and service selection. It also fails before the WebMCP origin-trial
+token has fewer than 14 days remaining. Discovery checks require no JavaScript and
+reject HTML redirects at `/agents.md`.
+
 Licensed under MIT. Public Zephior content remains subject to the terms linked from the canonical website.
