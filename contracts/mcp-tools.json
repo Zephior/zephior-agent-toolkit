@@ -44,12 +44,7 @@
                 "unconfirmed"
               ]
             },
-            "default": [
-              "closing-soon",
-              "open",
-              "unconfirmed",
-              "upcoming"
-            ],
+            "default": ["closing-soon", "open", "unconfirmed", "upcoming"],
             "description": "Omit for active statuses. An explicit empty array includes all statuses. OR within each filter, AND between filters and text search."
           },
           "buyer": {
@@ -58,11 +53,7 @@
           },
           "sort": {
             "type": "string",
-            "enum": [
-              "relevance",
-              "deadline",
-              "newest"
-            ],
+            "enum": ["relevance", "deadline", "newest"],
             "default": "relevance"
           },
           "page": {
@@ -73,11 +64,7 @@
           },
           "locale": {
             "type": "string",
-            "enum": [
-              "en",
-              "de",
-              "fr"
-            ],
+            "enum": ["en", "de", "fr"],
             "default": "en"
           }
         }
@@ -130,11 +117,7 @@
                 },
                 "locale": {
                   "type": "string",
-                  "enum": [
-                    "en",
-                    "de",
-                    "fr"
-                  ],
+                  "enum": ["en", "de", "fr"],
                   "default": "en"
                 },
                 "status": {
@@ -183,31 +166,17 @@
                 },
                 "deadline": {
                   "type": "object",
-                  "required": [
-                    "at",
-                    "date",
-                    "precision"
-                  ],
+                  "required": ["at", "date", "precision"],
                   "properties": {
                     "at": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
+                      "type": ["string", "null"]
                     },
                     "date": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
+                      "type": ["string", "null"]
                     },
                     "precision": {
                       "type": "string",
-                      "enum": [
-                        "instant",
-                        "date",
-                        "unavailable"
-                      ]
+                      "enum": ["instant", "date", "unavailable"]
                     }
                   },
                   "additionalProperties": true
@@ -237,9 +206,7 @@
           },
           "limit": {
             "type": "integer",
-            "enum": [
-              20
-            ]
+            "enum": [20]
           },
           "filters": {
             "type": "object",
@@ -247,21 +214,14 @@
           },
           "locale": {
             "type": "string",
-            "enum": [
-              "en",
-              "de",
-              "fr"
-            ],
+            "enum": ["en", "de", "fr"],
             "default": "en"
           },
           "url": {
             "type": "string"
           },
           "nextPage": {
-            "type": [
-              "integer",
-              "null"
-            ]
+            "type": ["integer", "null"]
           }
         },
         "additionalProperties": true
@@ -271,9 +231,7 @@
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "id"
-        ],
+        "required": ["id"],
         "properties": {
           "id": {
             "type": "string",
@@ -281,11 +239,7 @@
           },
           "locale": {
             "type": "string",
-            "enum": [
-              "en",
-              "de",
-              "fr"
-            ],
+            "enum": ["en", "de", "fr"],
             "default": "en"
           }
         }
@@ -322,11 +276,7 @@
           },
           "locale": {
             "type": "string",
-            "enum": [
-              "en",
-              "de",
-              "fr"
-            ],
+            "enum": ["en", "de", "fr"],
             "default": "en"
           },
           "status": {
@@ -375,31 +325,17 @@
           },
           "deadline": {
             "type": "object",
-            "required": [
-              "at",
-              "date",
-              "precision"
-            ],
+            "required": ["at", "date", "precision"],
             "properties": {
               "at": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "date": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": ["string", "null"]
               },
               "precision": {
                 "type": "string",
-                "enum": [
-                  "instant",
-                  "date",
-                  "unavailable"
-                ]
+                "enum": ["instant", "date", "unavailable"]
               }
             },
             "additionalProperties": true
@@ -426,32 +362,21 @@
         "properties": {
           "locale": {
             "type": "string",
-            "enum": [
-              "en",
-              "de",
-              "fr"
-            ],
+            "enum": ["en", "de", "fr"],
             "default": "en"
           }
         }
       },
       "outputSchema": {
         "type": "object",
-        "required": [
-          "countries",
-          "categories",
-          "statuses",
-          "locale"
-        ],
+        "required": ["countries", "categories", "statuses", "locale"],
         "properties": {
           "countries": {
             "type": "array",
             "maxItems": 250,
             "items": {
               "type": "object",
-              "required": [
-                "id"
-              ],
+              "required": ["id"],
               "properties": {
                 "id": {
                   "type": "string",
@@ -466,15 +391,9 @@
           },
           "categories": {
             "type": "array",
-            "maxItems": 500,
             "items": {
               "type": "object",
-              "required": [
-                "id",
-                "en",
-                "de",
-                "fr"
-              ],
+              "required": ["id", "en", "de", "fr"],
               "properties": {
                 "id": {
                   "type": "string"
@@ -496,10 +415,7 @@
             "maxItems": 8,
             "items": {
               "type": "object",
-              "required": [
-                "id",
-                "label"
-              ],
+              "required": ["id", "label"],
               "properties": {
                 "id": {
                   "type": "string",
@@ -522,11 +438,7 @@
           },
           "locale": {
             "type": "string",
-            "enum": [
-              "en",
-              "de",
-              "fr"
-            ],
+            "enum": ["en", "de", "fr"],
             "default": "en"
           }
         },
@@ -539,11 +451,7 @@
         "properties": {
           "locale": {
             "type": "string",
-            "enum": [
-              "en",
-              "de",
-              "fr"
-            ],
+            "enum": ["en", "de", "fr"],
             "description": "Authored response language. Defaults to English."
           }
         },
@@ -572,11 +480,7 @@
           },
           "locale": {
             "type": "string",
-            "enum": [
-              "en",
-              "de",
-              "fr"
-            ]
+            "enum": ["en", "de", "fr"]
           },
           "services": {
             "type": "array",
@@ -593,9 +497,7 @@
     "search_zephior_resources": {
       "inputSchema": {
         "type": "object",
-        "required": [
-          "query"
-        ],
+        "required": ["query"],
         "properties": {
           "query": {
             "type": "string",
@@ -604,11 +506,7 @@
           },
           "locale": {
             "type": "string",
-            "enum": [
-              "en",
-              "de",
-              "fr"
-            ],
+            "enum": ["en", "de", "fr"],
             "default": "en"
           },
           "limit": {
@@ -622,23 +520,14 @@
       },
       "outputSchema": {
         "type": "object",
-        "required": [
-          "query",
-          "locale",
-          "count",
-          "results"
-        ],
+        "required": ["query", "locale", "count", "results"],
         "properties": {
           "query": {
             "type": "string"
           },
           "locale": {
             "type": "string",
-            "enum": [
-              "en",
-              "de",
-              "fr"
-            ]
+            "enum": ["en", "de", "fr"]
           },
           "count": {
             "type": "integer"
@@ -655,17 +544,11 @@
     "get_zephior_document": {
       "inputSchema": {
         "type": "object",
-        "required": [
-          "document"
-        ],
+        "required": ["document"],
         "properties": {
           "document": {
             "type": "string",
-            "enum": [
-              "services",
-              "developer-guide",
-              "pricing"
-            ],
+            "enum": ["services", "developer-guide", "pricing"],
             "description": "The canonical public document to retrieve."
           }
         },
@@ -673,12 +556,7 @@
       },
       "outputSchema": {
         "type": "object",
-        "required": [
-          "document",
-          "title",
-          "url",
-          "content"
-        ],
+        "required": ["document", "title", "url", "content"],
         "properties": {
           "document": {
             "type": "string"
@@ -704,11 +582,7 @@
         "properties": {
           "currency": {
             "type": "string",
-            "enum": [
-              "CHF",
-              "USD",
-              "EUR"
-            ],
+            "enum": ["CHF", "USD", "EUR"],
             "default": "CHF"
           }
         },
@@ -729,11 +603,7 @@
           },
           "currency": {
             "type": "string",
-            "enum": [
-              "CHF",
-              "USD",
-              "EUR"
-            ]
+            "enum": ["CHF", "USD", "EUR"]
           },
           "canonicalPricing": {
             "type": "string"
@@ -753,9 +623,7 @@
     "recommend_zephior_service": {
       "inputSchema": {
         "type": "object",
-        "required": [
-          "requirement"
-        ],
+        "required": ["requirement"],
         "properties": {
           "requirement": {
             "type": "string",
@@ -767,21 +635,13 @@
       },
       "outputSchema": {
         "type": "object",
-        "required": [
-          "requirement",
-          "recommendation",
-          "resolution",
-          "safety"
-        ],
+        "required": ["requirement", "recommendation", "resolution", "safety"],
         "properties": {
           "requirement": {
             "type": "string"
           },
           "recommendation": {
-            "type": [
-              "object",
-              "null"
-            ],
+            "type": ["object", "null"],
             "additionalProperties": true
           },
           "resolution": {
@@ -797,43 +657,23 @@
     "create_ziva_pricing_estimate": {
       "inputSchema": {
         "type": "object",
-        "required": [
-          "currency"
-        ],
+        "required": ["currency"],
         "properties": {
           "currency": {
             "type": "string",
-            "enum": [
-              "CHF",
-              "USD",
-              "EUR"
-            ]
+            "enum": ["CHF", "USD", "EUR"]
           },
           "intelligenceCoverage": {
             "type": "string",
-            "enum": [
-              "national",
-              "regional",
-              "continental",
-              "global"
-            ]
+            "enum": ["national", "regional", "continental", "global"]
           },
           "projectKeys": {
             "type": "number",
-            "enum": [
-              1,
-              2,
-              5,
-              10,
-              20
-            ]
+            "enum": [1, 2, 5, 10, 20]
           },
           "projectsBillingPeriod": {
             "type": "string",
-            "enum": [
-              "monthly",
-              "annual"
-            ],
+            "enum": ["monthly", "annual"],
             "default": "monthly"
           }
         },
@@ -851,30 +691,18 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "non-binding-public-estimate"
-            ]
+            "enum": ["non-binding-public-estimate"]
           },
           "currency": {
             "type": "string",
-            "enum": [
-              "CHF",
-              "USD",
-              "EUR"
-            ]
+            "enum": ["CHF", "USD", "EUR"]
           },
           "intelligence": {
-            "type": [
-              "object",
-              "null"
-            ],
+            "type": ["object", "null"],
             "additionalProperties": true
           },
           "projects": {
-            "type": [
-              "object",
-              "null"
-            ],
+            "type": ["object", "null"],
             "additionalProperties": true
           },
           "canonicalPricing": {
