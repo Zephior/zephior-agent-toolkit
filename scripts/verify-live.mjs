@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import Ajv from "ajv";
+import Ajv from "ajv/dist/2020.js";
 const contracts = JSON.parse(
   await readFile(
     new URL("../contracts/mcp-tools.json", import.meta.url),
@@ -26,6 +26,37 @@ for (const [path, tools] of Object.entries(contracts)) {
   });
   assert.equal(response.status, 200);
   const live = (await response.json()).result.tools;
+  const cardPath =
+    path === "/mcp"
+      ? "/.well-known/mcp/docs-server-card.json"
+      : "/.well-known/mcp/server-card.json";
+  const card = await (await fetch(origin + cardPath)).json();
+  const schema = await (
+    await fetch(origin + new URL(card.$schema).pathname)
+  ).json();
+  const validateCard = ajv.getSchema(schema.$id) ?? ajv.compile(schema);
+  assert.ok(validateCard(card), JSON.stringify(validateCard.errors));
+  assert.deepEqual(
+    card.tools.map((tool) => tool.name).sort(),
+    live.map((tool) => tool.name).sort(),
+  );
+  const initialization = await fetch(origin + path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 2,
+      method: "initialize",
+      params: {
+        protocolVersion: "2025-06-18",
+        capabilities: {},
+        clientInfo: { name: "zephior-toolkit-audit", version: "0.4.0" },
+      },
+    }),
+  });
+  const server = (await initialization.json()).result.serverInfo;
+  assert.equal(card.name, server.name);
+  assert.equal(card.version, server.version);
   for (const [name, expected] of Object.entries(tools)) {
     const actual = live.find((tool) => tool.name === name);
     assert.ok(actual, `Missing documented tool ${name}`);
