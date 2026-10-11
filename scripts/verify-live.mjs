@@ -19,6 +19,57 @@ import {
 const origin = process.argv[2] ?? "https://zephior.com";
 const options = { origin, retries: 2 };
 const endpoint = `${origin}/mcp/product`;
+// Verify discovery without JavaScript or redirect following, not only already-known endpoints.
+for (const method of ["GET", "HEAD"]) {
+  const instructions = await fetch(`${origin}/agents.md`, {
+    method,
+    redirect: "manual",
+    headers: { Accept: "text/html", "User-Agent": "GPTBot" },
+    signal: AbortSignal.timeout(20_000),
+  });
+  assert.equal(instructions.status, 200, `${method} /agents.md must be direct`);
+  assert.ok(
+    instructions.headers.get("content-type")?.startsWith("text/markdown"),
+  );
+  const body = await instructions.text();
+  if (method === "GET") {
+    assert.ok(body.startsWith("# Work with Zephior"));
+    assert.ok(body.includes("https://zephior.com/mcp/product"));
+    assert.ok(body.includes("https://zephior.com/mcp."));
+    assert.ok(
+      !/<(?:html|meta|script)\b/i.test(body),
+      "HTML redirect replaced instructions",
+    );
+  } else {
+    assert.equal(body, "");
+  }
+}
+for (const path of ["/", "/tenders", "/developers", "/de", "/fr"]) {
+  const response = await fetch(origin + path, {
+    redirect: "manual",
+    headers: { Accept: "text/html" },
+    signal: AbortSignal.timeout(20_000),
+  });
+  assert.equal(response.status, 200, `Discovery page ${path}`);
+  const head =
+    (await response.text()).match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1] ?? "";
+  const links = [...head.matchAll(/<link\b[^>]*>/gi)].map((match) => match[0]);
+  for (const target of [
+    "/agents.md",
+    "/.well-known/mcp.json",
+    "/.well-known/mcp/docs-server-card.json",
+    "/.well-known/mcp/server-card.json",
+  ]) {
+    assert.ok(
+      links.some((link) => link.includes(`href="${target}"`)),
+      `${path}: missing HTML discovery ${target}`,
+    );
+    assert.ok(
+      response.headers.get("link")?.includes(`<https://zephior.com${target}>`),
+      `${path}: missing HTTP discovery ${target}`,
+    );
+  }
+}
 for (const [path, tools] of Object.entries(contracts)) {
   const response = await fetch(origin + path, {
     method: "POST",
