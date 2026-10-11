@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "zephior-agent-toolkit",
-  "version": "0.3.0",
-  "description": "Public Zephior skills and MCP connections for resource search, service selection, and Ziva pricing decisions.",
+  "version": "0.4.0",
+  "description": "Public Zephior skills and MCP connections for published tender search, resources, service selection and current Ziva pricing.",
   "author": {
     "name": "Zephior LLC",
     "email": "hello@zephior.com",

@@ -1,6 +1,6 @@
 {
   "name": "zephior-agent-toolkit",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Zero-dependency clients and portable agent resources for Zephior's public Discovery and MCP interfaces.",
   "type": "module",
   "exports": {
@@ -11,16 +11,20 @@
   },
   "files": [
     "src",
+    "CHANGELOG.md",
     "skills",
     "AGENTS.md",
     "plugin.json",
     "mcp.json",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "contracts"
   ],
   "scripts": {
     "test": "node --test",
-    "check": "node --check src/index.js && npm test"
+    "check": "node --check src/index.js && npm test",
+    "verify:live": "node scripts/verify-live.mjs",
+    "test:types": "tsc --noEmit --strict --lib es2022,dom --module nodenext --target es2022 typecheck/client.ts"
   },
   "repository": {
     "type": "git",
@@ -42,6 +46,10 @@
   "license": "MIT",
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "ajv": "8.20.0",
+    "typescript": "^6.0.2"
   },
   "publishConfig": {
     "access": "public",

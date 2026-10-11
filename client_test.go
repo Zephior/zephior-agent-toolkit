@@ -1,9 +1,11 @@
 package zephior
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -12,7 +14,23 @@ import (
 
 func testClient(t *testing.T, handler http.HandlerFunc) (*Client, func()) {
 	t.Helper()
-	server := httptest.NewServer(handler)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			data, _ := io.ReadAll(r.Body)
+			r.Body = io.NopCloser(bytes.NewReader(data))
+			var body map[string]any
+			_ = json.Unmarshal(data, &body)
+			if body["method"] == "initialize" {
+				_ = json.NewEncoder(w).Encode(map[string]any{"result": map[string]any{"protocolVersion": "2025-06-18"}})
+				return
+			}
+			if body["method"] == "notifications/initialized" {
+				w.WriteHeader(202)
+				return
+			}
+		}
+		handler(w, r)
+	}))
 	return &Client{BaseURL: server.URL, HTTPClient: server.Client()}, server.Close
 }
 
@@ -33,6 +51,20 @@ func TestGetSiteOverview(t *testing.T) {
 	}
 }
 
+func TestPublicTenderFilters(t *testing.T) {
+	client, closeServer := testClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/tenders" || r.URL.Query().Get("countries") != "CH,DE" || !r.URL.Query().Has("statuses") || r.URL.Query().Get("statuses") != "" || r.URL.Query().Get("q") != "bridge" {
+			t.Errorf("unexpected combined query %s", r.URL)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"items": []any{}, "total": 0, "page": 2, "limit": 20})
+	})
+	defer closeServer()
+	result, err := client.SearchPublicTenders(context.Background(), TenderSearch{Countries: []string{"CH", "DE"}, Statuses: []string{}, Query: "bridge", Page: 2})
+	if err != nil || result.Page != 2 || result.Limit != 20 {
+		t.Fatalf("unexpected result %v: %v", result, err)
+	}
+}
+
 func TestCreateZivaPricingEstimate(t *testing.T) {
 	client, closeServer := testClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mcp/product" || r.Method != http.MethodPost {
@@ -47,8 +79,8 @@ func TestCreateZivaPricingEstimate(t *testing.T) {
 			t.Fatalf("unexpected MCP tool %v", params["name"])
 		}
 		arguments := params["arguments"].(map[string]any)
-		if arguments["credits"] != float64(1149) {
-			t.Fatalf("unexpected credits %v", arguments["credits"])
+		if arguments["projectKeys"] != float64(1) {
+			t.Fatalf("unexpected project keys %v", arguments["projectKeys"])
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"jsonrpc": "2.0",
@@ -59,7 +91,7 @@ func TestCreateZivaPricingEstimate(t *testing.T) {
 		})
 	})
 	defer closeServer()
-	result, err := client.CreateZivaPricingEstimate(context.Background(), 1149, "CHF", "monthly")
+	result, err := client.CreateZivaPricingEstimate(context.Background(), PricingEstimateInput{ProjectKeys: 1, Currency: "CHF", ProjectsBillingPeriod: "monthly"})
 	if err != nil {
 		t.Fatal(err)
 	}

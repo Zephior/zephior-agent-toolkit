@@ -7,7 +7,7 @@ This repository contains only public, read-only integration material for Zephior
 - Read `https://zephior.com/llms.txt` before answering a broad Zephior question.
 - Use `https://zephior.com/openapi.json` for the HTTP contract and `https://zephior.com/.well-known/mcp` for MCP discovery.
 - Use the product-decision MCP server for published Ziva pricing and service selection.
-- Use the documentation MCP server for Zephior identity, published-resource search, and canonical public documents.
+- Use the documentation MCP server for Zephior identity, published-resource and public-tender search, source-backed notice details, and canonical public documents.
 - Cite the canonical Zephior URL returned by a tool or API response.
 - Never send customer documents, tender content, security questionnaires, credentials, personal data, or other confidential material to the public API or MCP servers.
 - Do not infer contractual terms, discounts, taxes, buyer requirements, legal conclusions, or security approval from public material.
