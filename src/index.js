@@ -170,7 +170,7 @@ export async function callZephiorMcpTool(
         params: {
           protocolVersion: "2025-06-18",
           capabilities: {},
-          clientInfo: { name: "zephior-agent-toolkit", version: "0.4.0" },
+          clientInfo: { name: "zephior-agent-toolkit", version: "0.5.0" },
         },
       }),
     },
@@ -302,11 +302,33 @@ export async function getPublicTender(
 }
 export async function getPublicTenderFacets({
   locale = "en",
+  categoryQuery,
   origin = DEFAULT_ORIGIN,
   ...options
 } = {}) {
   const url = new URL("/api/v1/tenders/facets", normalizedOrigin(origin));
   url.searchParams.set("locale", locale);
+  if (categoryQuery) url.searchParams.set("categoryQuery", categoryQuery);
+  return readJson(
+    await request(url, { headers: { Accept: "application/json" } }, options),
+  );
+}
+export async function listPublicTenderChanges(
+  { cursor, since, limit, locale = "en" } = {},
+  { origin = DEFAULT_ORIGIN, ...options } = {},
+) {
+  const url = new URL("/api/v1/tenders/changes", normalizedOrigin(origin));
+  for (const [key, value] of Object.entries({ cursor, since, limit, locale }))
+    if (value !== undefined) url.searchParams.set(key, String(value));
+  return readJson(
+    await request(url, { headers: { Accept: "application/json" } }, options),
+  );
+}
+export async function listPublicTenderSources({
+  origin = DEFAULT_ORIGIN,
+  ...options
+} = {}) {
+  const url = new URL("/api/v1/tenders/sources", normalizedOrigin(origin));
   return readJson(
     await request(url, { headers: { Accept: "application/json" } }, options),
   );

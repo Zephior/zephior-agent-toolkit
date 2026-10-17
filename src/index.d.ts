@@ -2,10 +2,7 @@ export type ZephiorLocale = "en" | "de" | "fr";
 export type ZephiorCurrency = "CHF" | "USD" | "EUR";
 export type BillingPeriod = "monthly" | "annual";
 export type IntelligenceCoverage =
-  | "national"
-  | "regional"
-  | "continental"
-  | "global";
+  "national" | "regional" | "continental" | "global";
 export type ProjectKeys = 1 | 2 | 5 | 10 | 20;
 export type TenderStatus =
   | "open"
@@ -85,9 +82,47 @@ export interface TenderResults {
 }
 export interface TenderFacets {
   countries: { id: string; count: number }[];
+  /** At most 100 categories; pass categoryQuery to find others. */
   categories: { id: string; en: string; de: string; fr: string }[];
+  categoriesTotal: number;
   statuses: { id: TenderStatus; label: string }[];
   locale: ZephiorLocale;
+}
+export interface TenderChangesQuery {
+  /** nextCursor from the previous page. */
+  cursor?: string;
+  /** ISO 8601 time with a timezone. Defaults to seven days ago. */
+  since?: string;
+  limit?: number;
+  locale?: ZephiorLocale;
+}
+export interface TenderChange {
+  id: string;
+  revision: number;
+  changedAt: string;
+  visibility: "public" | "withdrawn" | "merged";
+  replacementId: string | null;
+  url?: string;
+  titleEn?: string | null;
+  country?: string | null;
+  recordedStatus?: string | null;
+  deadline?: string | null;
+  changedFields?: string[];
+}
+export interface TenderChanges {
+  items: TenderChange[];
+  nextCursor: string | null;
+  locale: ZephiorLocale;
+  semantics: string;
+}
+export interface TenderSource {
+  id: string;
+  name: string;
+  url: string | null;
+  tenders: number;
+  currentTenders: number;
+  countries: string[];
+  lastCheckedAt: string | null;
 }
 export interface PricingEstimateInput {
   intelligenceCoverage?: IntelligenceCoverage;
@@ -159,5 +194,12 @@ export function getPublicTender(
   options?: ClientOptions & { locale?: ZephiorLocale },
 ): Promise<PublicTender>;
 export function getPublicTenderFacets(
-  options?: ClientOptions & { locale?: ZephiorLocale },
+  options?: ClientOptions & { locale?: ZephiorLocale; categoryQuery?: string },
 ): Promise<TenderFacets>;
+export function listPublicTenderChanges(
+  input?: TenderChangesQuery,
+  options?: ClientOptions,
+): Promise<TenderChanges>;
+export function listPublicTenderSources(
+  options?: ClientOptions,
+): Promise<{ sources: TenderSource[] }>;
