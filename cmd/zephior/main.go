@@ -21,7 +21,9 @@ func usage() {
   zephior estimate <project-keys> <CHF|USD|EUR> <monthly|annual> [coverage]
   zephior tenders --countries CH,DE --statuses open,closed --q bridge
   zephior tender <notice-id> [locale]
-  zephior facets [locale]
+  zephior facets [locale] [category-query]
+  zephior changes [--since 2026-10-01T00:00:00Z] [--cursor <next-cursor>] [--limit 50]
+  zephior sources
 
 The CLI calls Zephior's public, read-only interfaces. Never submit confidential material.`)
 }
@@ -124,11 +126,30 @@ func main() {
 		encoded, _ := json.Marshal(output)
 		_ = json.Unmarshal(encoded, &result)
 	case "facets":
-		locale := "en"
+		locale, query := "en", ""
 		if len(os.Args) > 2 {
 			locale = os.Args[2]
 		}
-		result, err = client.GetPublicTenderFacets(ctx, locale)
+		if len(os.Args) > 3 {
+			query = strings.Join(os.Args[3:], " ")
+		}
+		result, err = client.FindPublicTenderCategories(ctx, query, locale)
+	case "changes":
+		flags := flag.NewFlagSet("changes", flag.ExitOnError)
+		since := flags.String("since", "", "ISO 8601 time with a timezone; defaults to seven days ago")
+		cursor := flags.String("cursor", "", "nextCursor from the previous page")
+		limit := flags.Int("limit", 50, "Changes per page, up to 100")
+		locale := flags.String("locale", "en", "en, de or fr")
+		_ = flags.Parse(os.Args[2:])
+		var output zephior.TenderChanges
+		output, err = client.ListPublicTenderChanges(ctx, zephior.TenderChangesQuery{Cursor: *cursor, Since: *since, Limit: *limit, Locale: *locale})
+		encoded, _ := json.Marshal(output)
+		_ = json.Unmarshal(encoded, &result)
+	case "sources":
+		var output []zephior.TenderSource
+		output, err = client.ListPublicTenderSources(ctx)
+		encoded, _ := json.Marshal(map[string]any{"sources": output})
+		_ = json.Unmarshal(encoded, &result)
 	default:
 		usage()
 		os.Exit(2)

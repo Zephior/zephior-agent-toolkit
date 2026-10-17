@@ -7,7 +7,7 @@
     },
     "zephior-documentation": {
       "type": "streamable-http",
-      "url": "https://zephior.com/mcp"
+      "url": "https://mcp.zephior.com/mcp"
     }
   }
 }

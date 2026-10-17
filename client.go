@@ -188,7 +188,7 @@ func (c *Client) CallMCPToolAt(
 	if arguments == nil {
 		arguments = map[string]any{}
 	}
-	initRequest := map[string]any{"jsonrpc": "2.0", "id": 0, "method": "initialize", "params": map[string]any{"protocolVersion": "2025-06-18", "capabilities": map[string]any{}, "clientInfo": map[string]any{"name": "zephior-agent-toolkit", "version": "0.4.0"}}}
+	initRequest := map[string]any{"jsonrpc": "2.0", "id": 0, "method": "initialize", "params": map[string]any{"protocolVersion": "2025-06-18", "capabilities": map[string]any{}, "clientInfo": map[string]any{"name": "zephior-agent-toolkit", "version": "0.5.0"}}}
 	var handshake struct {
 		Result struct {
 			ProtocolVersion string `json:"protocolVersion"`
@@ -349,11 +349,85 @@ func (c *Client) GetPublicTender(ctx context.Context, id, locale string) (Public
 	err := c.doJSON(ctx, http.MethodGet, c.endpoint("/api/v1/tenders/"+id)+"?locale="+url.QueryEscape(locale), nil, &result)
 	return result, err
 }
+
+// GetPublicTenderFacets returns countries, statuses and up to 100 categories.
+// Use FindPublicTenderCategories to search the full category catalogue.
 func (c *Client) GetPublicTenderFacets(ctx context.Context, locale string) (map[string]any, error) {
+	return c.FindPublicTenderCategories(ctx, "", locale)
+}
+
+// FindPublicTenderCategories returns facets whose categories match query.
+func (c *Client) FindPublicTenderCategories(ctx context.Context, query, locale string) (map[string]any, error) {
 	if locale == "" {
 		locale = "en"
 	}
+	values := url.Values{"locale": {locale}}
+	if query != "" {
+		values.Set("categoryQuery", query)
+	}
 	result := map[string]any{}
-	err := c.doJSON(ctx, http.MethodGet, c.endpoint("/api/v1/tenders/facets")+"?locale="+url.QueryEscape(locale), nil, &result)
+	err := c.doJSON(ctx, http.MethodGet, c.endpoint("/api/v1/tenders/facets")+"?"+values.Encode(), nil, &result)
 	return result, err
+}
+
+type TenderChangesQuery struct {
+	Cursor string
+	Since  string
+	Limit  int
+	Locale string
+}
+type TenderChange struct {
+	ID             string   `json:"id"`
+	Revision       int      `json:"revision"`
+	ChangedAt      string   `json:"changedAt"`
+	Visibility     string   `json:"visibility"`
+	ReplacementID  *string  `json:"replacementId"`
+	URL            string   `json:"url,omitempty"`
+	TitleEn        *string  `json:"titleEn,omitempty"`
+	Country        *string  `json:"country,omitempty"`
+	RecordedStatus *string  `json:"recordedStatus,omitempty"`
+	Deadline       *string  `json:"deadline,omitempty"`
+	ChangedFields  []string `json:"changedFields,omitempty"`
+}
+type TenderChanges struct {
+	Items      []TenderChange `json:"items"`
+	NextCursor *string        `json:"nextCursor"`
+	Locale     string         `json:"locale"`
+	Semantics  string         `json:"semantics"`
+}
+
+// ListPublicTenderChanges follows new, amended and withdrawn notices in change
+// order. Pass the previous NextCursor as Cursor to continue.
+func (c *Client) ListPublicTenderChanges(ctx context.Context, input TenderChangesQuery) (TenderChanges, error) {
+	values := url.Values{}
+	for key, value := range map[string]string{"cursor": input.Cursor, "since": input.Since, "locale": input.Locale} {
+		if value != "" {
+			values.Set(key, value)
+		}
+	}
+	if input.Limit != 0 {
+		values.Set("limit", fmt.Sprint(input.Limit))
+	}
+	var result TenderChanges
+	err := c.doJSON(ctx, http.MethodGet, c.endpoint("/api/v1/tenders/changes")+"?"+values.Encode(), nil, &result)
+	return result, err
+}
+
+type TenderSource struct {
+	ID             string   `json:"id"`
+	Name           string   `json:"name"`
+	URL            *string  `json:"url"`
+	Tenders        int      `json:"tenders"`
+	CurrentTenders int      `json:"currentTenders"`
+	Countries      []string `json:"countries"`
+	LastCheckedAt  *string  `json:"lastCheckedAt"`
+}
+
+// ListPublicTenderSources lists the sources behind published notices.
+func (c *Client) ListPublicTenderSources(ctx context.Context) ([]TenderSource, error) {
+	var result struct {
+		Sources []TenderSource `json:"sources"`
+	}
+	err := c.doJSON(ctx, http.MethodGet, c.endpoint("/api/v1/tenders/sources"), nil, &result)
+	return result.Sources, err
 }

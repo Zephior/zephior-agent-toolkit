@@ -13,6 +13,8 @@ import {
   searchPublicTenders,
   getPublicTender,
   getPublicTenderFacets,
+  listPublicTenderChanges,
+  listPublicTenderSources,
   createZivaPricingEstimate,
   recommendZephiorService,
 } from "../src/index.js";
@@ -35,7 +37,7 @@ for (const method of ["GET", "HEAD"]) {
   if (method === "GET") {
     assert.ok(body.startsWith("# Work with Zephior"));
     assert.ok(body.includes("https://zephior.com/mcp/product"));
-    assert.ok(body.includes("https://zephior.com/mcp."));
+    assert.ok(body.includes("https://mcp.zephior.com/mcp"));
     assert.ok(
       !/<(?:html|meta|script)\b/i.test(body),
       "HTML redirect replaced instructions",
@@ -52,7 +54,8 @@ for (const path of ["/", "/tenders", "/developers", "/de", "/fr"]) {
   });
   assert.equal(response.status, 200, `Discovery page ${path}`);
   const head =
-    (await response.text()).match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1] ?? "";
+    (await response.text()).match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1] ??
+    "";
   const links = [...head.matchAll(/<link\b[^>]*>/gi)].map((match) => match[0]);
   for (const target of [
     "/agents.md",
@@ -159,6 +162,22 @@ if (results.items.length) {
   assert.ok(facets.countries.length && mcpFacets.countries.length);
 }
 assert.deepEqual(mcpFacets.statuses, facets.statuses);
+assert.ok(facets.categories.length <= 100);
+assert.ok(facets.categoriesTotal >= facets.categories.length);
+const changes = await listPublicTenderChanges({ limit: 2 }, options);
+validateOutput("/mcp", "list_public_tender_changes", changes);
+if (changes.nextCursor) {
+  const next = await listPublicTenderChanges(
+    { cursor: changes.nextCursor, limit: 2 },
+    options,
+  );
+  validateOutput("/mcp", "list_public_tender_changes", next);
+  const key = (item) => item && `${item.id}:${item.revision}`;
+  assert.ok(!changes.items.map(key).includes(key(next.items[0])));
+}
+const sources = await listPublicTenderSources(options);
+validateOutput("/mcp", "list_public_tender_sources", sources);
+assert.ok(sources.sources.length);
 const estimate = await createZivaPricingEstimate(
   { projectKeys: 1, currency: "CHF", projectsBillingPeriod: "monthly" },
   { endpoint },
@@ -174,6 +193,8 @@ assert.equal(
 const openapi = await (await fetch(`${origin}/openapi.json`)).json();
 assert.ok(openapi.paths["/tenders"]);
 assert.ok(openapi.paths["/tenders/{id}"]);
+assert.ok(openapi.paths["/tenders/changes"]);
+assert.ok(openapi.paths["/tenders/sources"]);
 const html = await fetch(`${origin}/tenders`, {
   headers: { Accept: "text/html" },
 });
