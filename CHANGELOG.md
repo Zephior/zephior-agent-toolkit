@@ -1,5 +1,9 @@
 # Changes
 
+## 0.6.1
+
+- `zephior-service-selection` 2.0.1 no longer describes national Intelligence coverage as free. Intelligence prices are published at `https://zephior.com/pricing`.
+
 ## 0.6.0
 
 - Skills now match the copies Zephior publishes at `https://zephior.com/.well-known/agent-skills/index.json`, under MIT. Two skills are renamed to their published IDs: `find-zephior-resources` is now `zephior-resource-search` and `select-zephior-service` is now `zephior-service-selection`. Reinstall with `npx skills add Zephior/zephior-agent-toolkit`.

@@ -4,7 +4,7 @@ description: Choose between Zephior Intelligence and Projects, and between runni
 license: MIT
 metadata:
   author: Zephior LLC
-  version: 2.0.0
+  version: 2.0.1
 ---
 
 # Select a Zephior product
@@ -13,7 +13,7 @@ Use this read-only skill when a user describes an outcome and needs to know whic
 
 ## Products
 
-- **Intelligence** (https://zephior.com/intelligence): finds and qualifies public tenders every week. Each strong match gets a cited dossier and one recommendation: pursue, hold, watch or pass. National coverage is free.
+- **Intelligence** (https://zephior.com/intelligence): finds and qualifies public tenders every week. Each strong match gets a cited dossier and one recommendation: pursue, hold, watch or pass.
 - **Projects** (https://zephior.com/projects): answers one tender, RFP, RFI, DDQ or questionnaire end to end, from the buyer's documents to the final files in the buyer's format.
 
 Intelligence and Projects are separate subscriptions. Recommend both only when the user needs to find tenders and to answer them.

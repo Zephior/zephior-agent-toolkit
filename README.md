@@ -4,7 +4,7 @@
 
 Official, public agent resources for [Zephior](https://zephior.com): four Agent Skills, an Agent Plugins 1.0 manifest, three remote MCP server declarations, coding-agent rules, and zero-dependency JavaScript and Go clients for published public notices, resources and pricing.
 
-Zephior has two products. [Intelligence](https://zephior.com/intelligence) finds and qualifies public tenders every week; national coverage is free. [Projects](https://zephior.com/projects) answers one tender, RFP, RFI, DDQ or questionnaire end to end, run by your team with Ziva, the AI agent, or by the Zelius bid team.
+Zephior has two products. [Intelligence](https://zephior.com/intelligence) finds and qualifies public tenders every week. [Projects](https://zephior.com/projects) answers one tender, RFP, RFI, DDQ or questionnaire end to end, run by your team with Ziva, the AI agent, or by the Zelius bid team.
 
 This repository contains no product source code, customer data, private knowledge, credentials, or write-capable integration.
 
@@ -28,7 +28,7 @@ These are the same files Zephior publishes in its [Agent Skills index](https://z
 Install the tested release directly from GitHub. The npm registry package is not currently published.
 
 ```bash
-npm install github:Zephior/zephior-agent-toolkit#v0.6.0
+npm install github:Zephior/zephior-agent-toolkit#v0.6.1
 ```
 
 ```js
