@@ -13,6 +13,13 @@ import (
 	zephior "github.com/Zephior/zephior-agent-toolkit"
 )
 
+func splitList(value string) []string {
+	if value == "" {
+		return nil
+	}
+	return strings.Split(value, ",")
+}
+
 func usage() {
 	fmt.Fprintln(os.Stderr, `Usage:
   zephior site [locale]
@@ -22,7 +29,8 @@ func usage() {
   zephior tenders --countries CH,DE --statuses open,closed --q bridge
   zephior tender <notice-id> [locale]
   zephior facets [locale] [category-query]
-  zephior changes [--since 2026-10-01T00:00:00Z] [--cursor <next-cursor>] [--limit 50]
+  zephior changes [--since 2026-10-01T00:00:00Z] [--until <time>] [--countries CH,DE] [--sources ted-europa] [--events published,corrected] [--sectors construction] [--cursor <next-cursor>] [--limit 50]
+  zephior categories [--q road] [--after <next>] [--locale en]
   zephior sources
 
 The CLI calls Zephior's public, read-only interfaces. Never submit confidential material.`)
@@ -137,12 +145,37 @@ func main() {
 	case "changes":
 		flags := flag.NewFlagSet("changes", flag.ExitOnError)
 		since := flags.String("since", "", "ISO 8601 time with a timezone; defaults to seven days ago")
+		until := flags.String("until", "", "Exclusive end of the window, ISO 8601 with a timezone")
 		cursor := flags.String("cursor", "", "nextCursor from the previous page")
+		countries := flags.String("countries", "", "Comma-separated country codes, such as CH,DE")
+		sources := flags.String("sources", "", "Comma-separated source IDs, such as ted-europa")
+		events := flags.String("events", "", "Comma-separated events: published, source_changed, corrected, withdrawn, merged, republished")
+		sectors := flags.String("sectors", "", "Comma-separated sectors, such as construction")
 		limit := flags.Int("limit", 50, "Changes per page, up to 100")
 		locale := flags.String("locale", "en", "en, de or fr")
 		_ = flags.Parse(os.Args[2:])
 		var output zephior.TenderChanges
-		output, err = client.ListPublicTenderChanges(ctx, zephior.TenderChangesQuery{Cursor: *cursor, Since: *since, Limit: *limit, Locale: *locale})
+		output, err = client.ListPublicTenderChanges(ctx, zephior.TenderChangesQuery{
+			Cursor:    *cursor,
+			Since:     *since,
+			Until:     *until,
+			Countries: splitList(*countries),
+			Sources:   splitList(*sources),
+			Events:    splitList(*events),
+			Sectors:   splitList(*sectors),
+			Limit:     *limit,
+			Locale:    *locale,
+		})
+		encoded, _ := json.Marshal(output)
+		_ = json.Unmarshal(encoded, &result)
+	case "categories":
+		flags := flag.NewFlagSet("categories", flag.ExitOnError)
+		query := flags.String("q", "", "Search category labels or IDs")
+		after := flags.String("after", "", "next from the previous page")
+		locale := flags.String("locale", "en", "en, de or fr")
+		_ = flags.Parse(os.Args[2:])
+		var output zephior.TenderCategoryPage
+		output, err = client.BrowsePublicTenderCategories(ctx, *query, *after, *locale)
 		encoded, _ := json.Marshal(output)
 		_ = json.Unmarshal(encoded, &result)
 	case "sources":

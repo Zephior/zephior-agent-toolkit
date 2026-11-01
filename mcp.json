@@ -8,6 +8,10 @@
     "zephior-documentation": {
       "type": "streamable-http",
       "url": "https://mcp.zephior.com/mcp"
+    },
+    "zephior-tenders": {
+      "type": "streamable-http",
+      "url": "https://mcp.zephior.com/tenders"
     }
   }
 }

@@ -88,13 +88,40 @@ export interface TenderFacets {
   statuses: { id: TenderStatus; label: string }[];
   locale: ZephiorLocale;
 }
+export type TenderChangeEvent =
+  | "published"
+  | "source_changed"
+  | "corrected"
+  | "withdrawn"
+  | "merged"
+  | "republished";
 export interface TenderChangesQuery {
   /** nextCursor from the previous page. */
   cursor?: string;
   /** ISO 8601 time with a timezone. Defaults to seven days ago. */
   since?: string;
+  /** Exclusive end of the window, ISO 8601 with a timezone. */
+  until?: string;
+  /** ISO 3166-1 alpha-2 country codes, such as CH. */
+  countries?: string[];
+  /** Source IDs from listPublicTenderSources, such as ted-europa. */
+  sources?: string[];
+  events?: TenderChangeEvent[];
+  /** Sector IDs, such as construction or it-telecoms. */
+  sectors?: string[];
   limit?: number;
   locale?: ZephiorLocale;
+}
+export interface TenderCategoryQuery {
+  /** Search category labels or IDs. */
+  q?: string;
+  /** next from the previous page. */
+  after?: string;
+  locale?: ZephiorLocale;
+}
+export interface TenderCategoryPage {
+  options: { value: string; label: string }[];
+  next: string | null;
 }
 export interface TenderChange {
   id: string;
@@ -200,6 +227,10 @@ export function listPublicTenderChanges(
   input?: TenderChangesQuery,
   options?: ClientOptions,
 ): Promise<TenderChanges>;
+export function browsePublicTenderCategories(
+  input?: TenderCategoryQuery,
+  options?: ClientOptions,
+): Promise<TenderCategoryPage>;
 export function listPublicTenderSources(
   options?: ClientOptions,
 ): Promise<{ sources: TenderSource[] }>;

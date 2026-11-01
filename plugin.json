@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "zephior-agent-toolkit",
-  "version": "0.5.0",
-  "description": "Public Zephior skills and MCP connections for published tender search, resources, service selection and current Ziva pricing.",
+  "version": "0.6.0",
+  "description": "Public Zephior skills and MCP connections for published tender search, resources, choosing between Intelligence and Projects, and current Ziva pricing.",
   "author": {
     "name": "Zephior LLC",
     "email": "hello@zephior.com",
@@ -14,10 +14,10 @@
   "keywords": [
     "zephior",
     "ziva",
+    "zelius",
+    "tenders",
     "rfp",
     "proposals",
-    "ai-engineering",
-    "process-automation",
     "agent-skills",
     "mcp"
   ]
