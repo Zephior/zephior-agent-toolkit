@@ -2,7 +2,9 @@
 
 [![skills.sh](https://skills.sh/b/Zephior/zephior-agent-toolkit)](https://skills.sh/Zephior/zephior-agent-toolkit)
 
-Official, public agent resources for [Zephior](https://zephior.com): four Agent Skills, an Agent Plugins 1.0 manifest, two remote MCP server declarations, coding-agent rules, and zero-dependency JavaScript and Go clients for published public notices, resources and pricing.
+Official, public agent resources for [Zephior](https://zephior.com): four Agent Skills, an Agent Plugins 1.0 manifest, three remote MCP server declarations, coding-agent rules, and zero-dependency JavaScript and Go clients for published public notices, resources and pricing.
+
+Zephior has two products. [Intelligence](https://zephior.com/intelligence) finds and qualifies public tenders every week; national coverage is free. [Projects](https://zephior.com/projects) answers one tender, RFP, RFI, DDQ or questionnaire end to end, run by your team with Ziva, the AI agent, or by the Zelius bid team.
 
 This repository contains no product source code, customer data, private knowledge, credentials, or write-capable integration.
 
@@ -14,17 +16,19 @@ npx skills add Zephior/zephior-agent-toolkit
 
 The package exposes:
 
-- `find-zephior-resources` for canonical public research and citations;
-- `search-public-tenders` for combined country, category, status and text search and source-backed notice details;
-- `select-zephior-service` for choosing between Ziva software and Zelius managed bid services;
+- `search-public-tenders` for combined tender search, source-backed notice details and the change feed;
+- `zephior-resource-search` for canonical public research and citations;
+- `zephior-service-selection` for choosing between Intelligence and Projects, and between Ziva and Zelius for a Project;
 - `compare-ziva-pricing` for published capacity comparisons and non-binding estimates.
+
+These are the same files Zephior publishes in its [Agent Skills index](https://zephior.com/.well-known/agent-skills/index.json); live verification fails if they drift.
 
 ## Use the JavaScript client
 
 Install the tested release directly from GitHub. The npm registry package is not currently published.
 
 ```bash
-npm install github:Zephior/zephior-agent-toolkit#v0.5.0
+npm install github:Zephior/zephior-agent-toolkit#v0.6.0
 ```
 
 ```js
@@ -34,6 +38,7 @@ import {
   getPublicTender,
   listPublicTenderChanges,
   listPublicTenderSources,
+  browsePublicTenderCategories,
   searchZephiorResources,
 } from "zephior-agent-toolkit";
 
@@ -63,21 +68,32 @@ if (tenders.items.length) {
   console.log(notice.url, notice.originalSource.url);
 }
 
-// Follow new and amended notices; keep nextCursor for the next run.
+// Follow new and amended Swiss notices; keep nextCursor for the next run.
 let cursor;
 do {
-  const page = await listPublicTenderChanges({ cursor, limit: 100 });
+  const page = await listPublicTenderChanges({
+    cursor,
+    countries: ["CH"],
+    events: ["published", "corrected"],
+    limit: 100,
+  });
   for (const change of page.items) console.log(change.changedAt, change.url);
   cursor = page.nextCursor ?? undefined;
 } while (cursor);
 
 const { sources } = await listPublicTenderSources();
 console.log(sources[0].name, sources[0].url);
+
+const { options, next } = await browsePublicTenderCategories({ q: "road" });
 ```
 
 The client uses global Fetch with a 15-second request timeout, caller `signal` support and bounded retries on 429/503. Responses are limited to 8 MiB. MCP calls negotiate initialization and surface tool errors. It has no runtime dependencies.
 
-`getPublicTenderFacets` returns countries, statuses and up to 100 categories with `categoriesTotal`; pass `categoryQuery` to find other category IDs.
+`getPublicTenderFacets` returns countries, statuses and up to 100 categories with `categoriesTotal`; pass `categoryQuery` to find other category IDs, or page through every category with `browsePublicTenderCategories` and its `next` value.
+
+`listPublicTenderChanges` narrows the feed by `countries`, `sources`, `events` and `sectors`, and closes a window with `since` and `until`.
+
+The MCP `search_public_tenders` tool adds sectors, CPV prefixes, place, deadline and value ranges and a compact or full view; see `contracts/mcp-tools.json`.
 
 Filters use OR within selected values and AND across filters and text search. Omit statuses for active defaults; `statuses: []` includes all statuses. Page size is 20. Removing one selected value preserves the remaining array and query. Missing information stays unavailable. Deadlines distinguish exact instants from source calendar dates.
 
@@ -104,7 +120,7 @@ Search results are discovery hints, not sufficient evidence for a detailed answe
 
 Do not paste private tender text or identifying customer information into a
 public search query. Generalize the problem first. The installable
-[`find-zephior-resources` skill](skills/find-zephior-resources/SKILL.md) provides
+[`zephior-resource-search` skill](skills/zephior-resource-search/SKILL.md) provides
 the research instructions.
 
 ## Use the Go SDK or CLI
@@ -119,11 +135,12 @@ zephior estimate 1 CHF monthly
 zephior estimate 0 CHF monthly regional
 zephior tenders --countries CH,DE --statuses open,closed --q bridge
 zephior facets en road
-zephior changes --since 2026-10-01T00:00:00Z --limit 50
+zephior changes --since 2026-10-01T00:00:00Z --countries CH --events published,corrected --limit 50
+zephior categories --q road
 zephior sources
 ```
 
-The Go API also exposes `SearchPublicTenders`, `GetPublicTender`, `GetPublicTenderFacets`, `FindPublicTenderCategories`, `ListPublicTenderChanges` and `ListPublicTenderSources`. Pricing uses `PricingEstimateInput{ProjectKeys: 1, Currency: "CHF", ProjectsBillingPeriod: "monthly"}`. Requests have finite timeouts and respect the caller's context cancellation. See [migration notes](CHANGELOG.md).
+The Go API also exposes `SearchPublicTenders`, `GetPublicTender`, `GetPublicTenderFacets`, `FindPublicTenderCategories`, `BrowsePublicTenderCategories`, `ListPublicTenderChanges` and `ListPublicTenderSources`. Pricing uses `PricingEstimateInput{ProjectKeys: 1, Currency: "CHF", ProjectsBillingPeriod: "monthly"}`. Requests have finite timeouts and respect the caller's context cancellation. See [migration notes](CHANGELOG.md).
 
 Select the MCP server explicitly for tool calls:
 
@@ -147,14 +164,15 @@ methods also remain bound to `/mcp/product`.
 
 ## Connect the MCP servers
 
-`mcp.json` declares two public Streamable HTTP servers:
+`mcp.json` declares three public Streamable HTTP servers:
 
-- product decisions: `https://zephior.com/mcp/product`;
-- documentation, published tender search, change feed, sources and public resources: `https://mcp.zephior.com/mcp` (also `https://zephior.com/mcp`).
+- product decisions (pricing and choosing between Ziva and Zelius): `https://zephior.com/mcp/product`;
+- documentation, published tender search, change feed, sources and public resources: `https://mcp.zephior.com/mcp` (also `https://zephior.com/mcp`);
+- the five tender tools only: `https://mcp.zephior.com/tenders`.
 
 The public tender REST API is also served at `https://tenders-api.zephior.com/v1/tenders`.
 
-Both are read-only, require no credential, and expose published information only. The product server also exposes an MCP App UI resource for capacity comparison.
+All are read-only, require no credential, and expose published information only. The product server also exposes an MCP App UI resource for capacity comparison.
 
 ## Canonical contracts
 

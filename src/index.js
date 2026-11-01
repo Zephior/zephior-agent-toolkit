@@ -314,12 +314,48 @@ export async function getPublicTenderFacets({
   );
 }
 export async function listPublicTenderChanges(
-  { cursor, since, limit, locale = "en" } = {},
+  {
+    cursor,
+    since,
+    until,
+    countries,
+    sources,
+    events,
+    sectors,
+    limit,
+    locale = "en",
+  } = {},
   { origin = DEFAULT_ORIGIN, ...options } = {},
 ) {
   const url = new URL("/api/v1/tenders/changes", normalizedOrigin(origin));
-  for (const [key, value] of Object.entries({ cursor, since, limit, locale }))
-    if (value !== undefined) url.searchParams.set(key, String(value));
+  for (const [key, value] of Object.entries({
+    cursor,
+    since,
+    until,
+    countries,
+    sources,
+    events,
+    sectors,
+    limit,
+    locale,
+  }))
+    if (value !== undefined)
+      url.searchParams.set(
+        key,
+        Array.isArray(value) ? value.join(",") : String(value),
+      );
+  return readJson(
+    await request(url, { headers: { Accept: "application/json" } }, options),
+  );
+}
+export async function browsePublicTenderCategories(
+  { q, after, locale = "en" } = {},
+  { origin = DEFAULT_ORIGIN, ...options } = {},
+) {
+  const url = new URL("/api/v1/tenders/categories", normalizedOrigin(origin));
+  url.searchParams.set("locale", locale);
+  if (q) url.searchParams.set("q", q);
+  if (after) url.searchParams.set("after", after);
   return readJson(
     await request(url, { headers: { Accept: "application/json" } }, options),
   );

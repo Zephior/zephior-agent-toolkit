@@ -370,11 +370,47 @@ func (c *Client) FindPublicTenderCategories(ctx context.Context, query, locale s
 	return result, err
 }
 
+type TenderCategory struct {
+	Value string `json:"value"`
+	Label string `json:"label"`
+}
+type TenderCategoryPage struct {
+	Options []TenderCategory `json:"options"`
+	Next    *string          `json:"next"`
+}
+
+// BrowsePublicTenderCategories pages through every category. Pass the previous
+// Next as after to continue; query searches labels and IDs.
+func (c *Client) BrowsePublicTenderCategories(ctx context.Context, query, after, locale string) (TenderCategoryPage, error) {
+	if locale == "" {
+		locale = "en"
+	}
+	values := url.Values{"locale": {locale}}
+	if query != "" {
+		values.Set("q", query)
+	}
+	if after != "" {
+		values.Set("after", after)
+	}
+	var result TenderCategoryPage
+	err := c.doJSON(ctx, http.MethodGet, c.endpoint("/api/v1/tenders/categories")+"?"+values.Encode(), nil, &result)
+	return result, err
+}
+
+// TenderChangesQuery narrows the change feed. Since and Until are ISO 8601
+// times with a timezone; Until is exclusive. Sources are IDs from
+// ListPublicTenderSources. Events are published, source_changed, corrected,
+// withdrawn, merged or republished.
 type TenderChangesQuery struct {
-	Cursor string
-	Since  string
-	Limit  int
-	Locale string
+	Cursor    string
+	Since     string
+	Until     string
+	Countries []string
+	Sources   []string
+	Events    []string
+	Sectors   []string
+	Limit     int
+	Locale    string
 }
 type TenderChange struct {
 	ID             string   `json:"id"`
@@ -400,9 +436,14 @@ type TenderChanges struct {
 // order. Pass the previous NextCursor as Cursor to continue.
 func (c *Client) ListPublicTenderChanges(ctx context.Context, input TenderChangesQuery) (TenderChanges, error) {
 	values := url.Values{}
-	for key, value := range map[string]string{"cursor": input.Cursor, "since": input.Since, "locale": input.Locale} {
+	for key, value := range map[string]string{"cursor": input.Cursor, "since": input.Since, "until": input.Until, "locale": input.Locale} {
 		if value != "" {
 			values.Set(key, value)
+		}
+	}
+	for key, list := range map[string][]string{"countries": input.Countries, "sources": input.Sources, "events": input.Events, "sectors": input.Sectors} {
+		if len(list) > 0 {
+			values.Set(key, strings.Join(list, ","))
 		}
 	}
 	if input.Limit != 0 {

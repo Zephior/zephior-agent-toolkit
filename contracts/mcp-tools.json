@@ -50,7 +50,7 @@
               "unconfirmed",
               "upcoming"
             ],
-            "description": "Omit for active statuses. An explicit empty array includes all statuses. OR within each filter, AND between filters and text search."
+            "description": "Omit for active statuses (open, closing-soon, upcoming, unconfirmed). An explicit empty array includes all statuses. closing-soon is an open notice whose deadline is within 7 days (168 hours); a passed deadline shows as closed. OR within each filter, AND between filters and text search."
           },
           "buyer": {
             "type": "string",
@@ -79,6 +79,91 @@
               "fr"
             ],
             "default": "en"
+          },
+          "view": {
+            "type": "string",
+            "enum": [
+              "compact",
+              "full"
+            ],
+            "default": "compact",
+            "description": "compact returns what is needed to choose and cite a notice; full returns whole records (notice text, facts, history), at most 20 per page."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 20
+          },
+          "sectors": {
+            "type": "array",
+            "maxItems": 16,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "construction",
+                "medical",
+                "it-telecoms",
+                "energy",
+                "environment",
+                "transport",
+                "facilities",
+                "food",
+                "engineering",
+                "consulting",
+                "education",
+                "office",
+                "culture",
+                "machinery",
+                "materials",
+                "agriculture"
+              ]
+            },
+            "description": "Broad sectors grouping every category and CPV code, such as construction or it-telecoms. Prefer this to category IDs for broad needs."
+          },
+          "deadlineFrom": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(T[0-9:.]+(Z|[+-]\\d{2}:\\d{2}))?$",
+            "description": "Earliest submission deadline: an ISO date (from its start, UTC) or a time with a timezone. Date-only deadlines count as the end of their day."
+          },
+          "deadlineTo": {
+            "type": "string",
+            "maxLength": 40,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(T[0-9:.]+(Z|[+-]\\d{2}:\\d{2}))?$",
+            "description": "Latest submission deadline: an ISO date (to its end, UTC) or a time with a timezone. Notices without a deadline are excluded once either bound is set."
+          },
+          "cpv": {
+            "type": "array",
+            "maxItems": 50,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^\\d{2,8}$"
+            },
+            "description": "CPV code prefixes, such as 45 (construction work) or 72 (IT services). Matches notices whose source lists such a code."
+          },
+          "valueMin": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Lowest estimated value; needs currency."
+          },
+          "valueMax": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Highest estimated value; needs currency."
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "Currency of valueMin and valueMax, such as CHF or EUR. Only notices stating an estimated value in this currency match; amounts are not converted."
+          },
+          "place": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100,
+            "description": "Part of the place of performance or buyer location as published, such as Genève or Zürich. Spelling matters; many notices name only a region."
           }
         }
       },
@@ -97,7 +182,7 @@
         "properties": {
           "items": {
             "type": "array",
-            "maxItems": 20,
+            "maxItems": 50,
             "items": {
               "type": "object",
               "required": [
@@ -106,11 +191,8 @@
                 "title",
                 "summary",
                 "status",
-                "recordedStatus",
                 "locale",
                 "deadline",
-                "originalSource",
-                "sources",
                 "modifiedAt"
               ],
               "properties": {
@@ -150,35 +232,7 @@
                     "unconfirmed"
                   ]
                 },
-                "recordedStatus": {
-                  "type": "string",
-                  "enum": [
-                    "open",
-                    "closing-soon",
-                    "closed",
-                    "awarded",
-                    "cancelled",
-                    "suspended",
-                    "upcoming",
-                    "unconfirmed"
-                  ]
-                },
-                "sourceStatus": {
-                  "type": "string"
-                },
                 "country": {
-                  "type": "string"
-                },
-                "revision": {
-                  "type": "integer"
-                },
-                "stale": {
-                  "type": "boolean"
-                },
-                "modifiedAt": {
-                  "type": "string"
-                },
-                "sourceCheckedAt": {
                   "type": "string"
                 },
                 "deadline": {
@@ -212,16 +266,8 @@
                   },
                   "additionalProperties": true
                 },
-                "originalSource": {
-                  "type": "object",
-                  "additionalProperties": true
-                },
-                "sources": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "additionalProperties": true
-                  }
+                "modifiedAt": {
+                  "type": "string"
                 }
               },
               "additionalProperties": true
@@ -237,9 +283,8 @@
           },
           "limit": {
             "type": "integer",
-            "enum": [
-              20
-            ]
+            "minimum": 1,
+            "maximum": 50
           },
           "filters": {
             "type": "object",
@@ -287,6 +332,17 @@
               "fr"
             ],
             "default": "en"
+          },
+          "historyBefore": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Continue history before this revision; pass historyNextBefore."
+          },
+          "historyLimit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 30
           }
         }
       },
@@ -437,6 +493,12 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 300
+          },
+          "categoryOffset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000,
+            "default": 0
           }
         }
       },
@@ -559,6 +621,72 @@
             "format": "date-time",
             "description": "Earliest change time with a timezone. Without a cursor or since, the feed starts seven days ago."
           },
+          "until": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Exclusive end of the window, with a timezone. With since and until, paging with nextCursor reads one closed window completely."
+          },
+          "countries": {
+            "type": "array",
+            "maxItems": 250,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            }
+          },
+          "sources": {
+            "type": "array",
+            "maxItems": 50,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]{1,100}$"
+            },
+            "description": "Source IDs from list_public_tender_sources, such as ted-europa."
+          },
+          "events": {
+            "type": "array",
+            "maxItems": 6,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "published",
+                "source_changed",
+                "corrected",
+                "withdrawn",
+                "merged",
+                "republished"
+              ]
+            }
+          },
+          "sectors": {
+            "type": "array",
+            "maxItems": 16,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "construction",
+                "medical",
+                "it-telecoms",
+                "energy",
+                "environment",
+                "transport",
+                "facilities",
+                "food",
+                "engineering",
+                "consulting",
+                "education",
+                "office",
+                "culture",
+                "machinery",
+                "materials",
+                "agriculture"
+              ]
+            }
+          },
           "limit": {
             "type": "integer",
             "minimum": 1,
@@ -656,6 +784,24 @@
                   "items": {
                     "type": "string"
                   }
+                },
+                "event": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "sourcePlatform": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "sector": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 }
               },
               "additionalProperties": false

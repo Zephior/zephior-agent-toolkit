@@ -15,6 +15,7 @@ import {
   getPublicTenderFacets,
   listPublicTenderChanges,
   listPublicTenderSources,
+  browsePublicTenderCategories,
   createZivaPricingEstimate,
   recommendZephiorService,
 } from "../src/index.js";
@@ -175,6 +176,16 @@ if (changes.nextCursor) {
   const key = (item) => item && `${item.id}:${item.revision}`;
   assert.ok(!changes.items.map(key).includes(key(next.items[0])));
 }
+const swiss = await listPublicTenderChanges(
+  { countries: ["CH"], limit: 5 },
+  options,
+);
+validateOutput("/mcp", "list_public_tender_changes", swiss);
+assert.ok(
+  swiss.items.every((item) => item.country == null || item.country === "CH"),
+);
+const categories = await browsePublicTenderCategories({ q: "road" }, options);
+assert.ok(Array.isArray(categories.options) && categories.options.length);
 const sources = await listPublicTenderSources(options);
 validateOutput("/mcp", "list_public_tender_sources", sources);
 assert.ok(sources.sources.length);
@@ -210,5 +221,17 @@ if (origin === "https://zephior.com") {
     trial.expiry * 1000 > Date.now() + 14 * 86400000,
     "Renew the WebMCP trial token before its remaining lifetime falls below 14 days",
   );
+}
+// The website publishes the canonical skills; the repository copies must match.
+const index = await (
+  await fetch(`${origin}/.well-known/agent-skills/index.json`)
+).json();
+for (const skill of index.skills) {
+  const published = await (await fetch(skill.url)).text();
+  const local = await readFile(
+    new URL(`../skills/${skill.id}/SKILL.md`, import.meta.url),
+    "utf8",
+  );
+  assert.equal(local, published, `Skill drift: ${skill.id}`);
 }
 console.log("Live toolkit contract verification passed");
